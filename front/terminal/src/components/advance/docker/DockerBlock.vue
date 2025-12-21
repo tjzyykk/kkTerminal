@@ -58,7 +58,16 @@
                     <template #header>
                       <div class="card-header" >
                         <div class="kk-flex" >
-                          <span class="app-title" >{{ app.name }}</span>
+                          <div class="kk-flex-column" style="align-items: start;" >
+                            <span class="app-name" >{{ app.name }}</span>
+                            <div class="kk-flex" >
+                              <span class="app-author" >{{ app.author }}</span>
+                              <a :href="app.link" target="_blank" class="a-link app-details" >
+                                <el-icon class="el-input__icon" style="font-size: 16px;" ><TopRight /></el-icon>
+                                <span>{{ $t('详情') }}</span>
+                              </a>
+                            </div>
+                          </div>
                           <div style="flex: 1;" ></div>
                           <el-button size="small" type="primary" @click="handleAppGet(app.deployInfo)" >
                             {{ $t('获取') }}
@@ -145,118 +154,146 @@
           </div>
         </el-tab-pane>
         <el-tab-pane :disabled="!(hasDocker && hasPermission)" :label="$t('容器')" >
-          <el-table @cell-dblclick="tableDataCopy" style="height: 200px; width: 100%;" v-if="dockerInfo.container.length > 0" :data="dockerInfo.container" @selection-change="tableSelect" border stripe table-layout="fixed" >
-            <el-table-column type="selection" width="40" fixed="left" />
-            <el-table-column show-overflow-tooltip prop="id" label="ID" width="120" />
-            <el-table-column show-overflow-tooltip prop="name" :label="$t('名称')" width="120" />
-            <el-table-column show-overflow-tooltip prop="status" :label="$t('状态')" width="80" />
-            <el-table-column show-overflow-tooltip prop="image" :label="$t('镜像')" width="140" />
-            <el-table-column show-overflow-tooltip prop="port" :label="$t('端口')" />
-            <el-table-column show-overflow-tooltip width="50" fixed="right" >
-              <template #header>
-                <el-icon style="font-size: 18px; color: #606266;" ><Operation /></el-icon>
-              </template>
-              <template #default="scope">
-                <el-icon @click="openContainerViewer(scope.row)" style="font-size: 18px; color: #606266; cursor: pointer;" ><Document /></el-icon>
-              </template>
-            </el-table-column>
-          </el-table>
+          <template v-if="dockerInfo.container.length > 0" >
+            <el-table @cell-dblclick="tableDataCopy" class="table-class" :data="dockerInfo.container" @selection-change="tableSelect" border stripe table-layout="fixed" >
+              <el-table-column type="selection" width="40" fixed="left" />
+              <el-table-column show-overflow-tooltip prop="id" label="ID" width="120" />
+              <el-table-column show-overflow-tooltip prop="name" :label="$t('名称')" width="120" />
+              <el-table-column show-overflow-tooltip prop="status" :label="$t('状态')" width="80" />
+              <el-table-column show-overflow-tooltip prop="image" :label="$t('镜像')" width="140" />
+              <el-table-column show-overflow-tooltip prop="port" :label="$t('端口')" />
+              <el-table-column show-overflow-tooltip width="50" fixed="right" >
+                <template #header>
+                  <el-icon style="font-size: 18px; color: #606266;" ><Operation /></el-icon>
+                </template>
+                <template #default="scope" >
+                  <el-icon @click="openContainerViewer(scope.row)" style="font-size: 18px; color: #606266; cursor: pointer;" ><Document /></el-icon>
+                </template>
+              </el-table-column>
+            </el-table>
+            <div class="kk-flex" style="height: 35px; margin-top: 5px;" >
+              <el-dropdown hide-timeout="300" >
+                <span class="a-link no-select" >{{ $t(containerTypeArr[containerType]) }}<el-icon class="el-icon--right" ><arrow-down /></el-icon></span>
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item class="no-select" @click="containerType = 1" >{{ $t(containerTypeArr[1]) }}</el-dropdown-item>
+                    <el-dropdown-item class="no-select" @click="containerType = 2" >{{ $t(containerTypeArr[2]) }}</el-dropdown-item>
+                    <el-dropdown-item class="no-select" @click="containerType = 3" >{{ $t(containerTypeArr[3]) }}</el-dropdown-item>
+                    <el-dropdown-item class="no-select" @click="containerType = 4" >{{ $t(containerTypeArr[4]) }}</el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
+              <el-button :disabled="!(selectedItems.length > 0 && containerType !== 0)" size="small" type="primary" @click="operateConfirm" style="margin-left: 10px;" >
+                {{ $t('确定') }}
+              </el-button>
+              <div style="flex: 1;" ></div>
+              <div class="kk-flex hover-class" @click="getDockerInfo(0)" >
+                <el-icon style="font-size: 18px;" ><Refresh /></el-icon>
+                <div style="margin-left: 8px;" >{{ $t('刷新') }}</div>
+              </div>
+            </div>
+          </template>
           <div v-else >
             <NoData v-if="!loading" height="240px" ></NoData>
             <div v-else style="height: 240px;" ></div>
-          </div>
-          <div class="kk-flex" v-if="dockerInfo.container.length > 0" style="height: 35px; margin-top: 5px;" >
-            <el-dropdown hide-timeout="300" >
-              <span class="a-link no-select" >{{ $t(containerTypeArr[containerType]) }}<el-icon class="el-icon--right" ><arrow-down /></el-icon></span>
-              <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item class="no-select" @click="containerType = 1" >{{ $t(containerTypeArr[1]) }}</el-dropdown-item>
-                  <el-dropdown-item class="no-select" @click="containerType = 2" >{{ $t(containerTypeArr[2]) }}</el-dropdown-item>
-                  <el-dropdown-item class="no-select" @click="containerType = 3" >{{ $t(containerTypeArr[3]) }}</el-dropdown-item>
-                  <el-dropdown-item class="no-select" @click="containerType = 4" >{{ $t(containerTypeArr[4]) }}</el-dropdown-item>
-                </el-dropdown-menu>
-              </template>
-            </el-dropdown>
-            <el-button :disabled="!(selectedItems.length > 0 && containerType !== 0)" size="small" type="primary" @click="operateConfirm" style="margin-left: 10px;" >
-              {{ $t('确定') }}
-            </el-button>
           </div>
         </el-tab-pane>
         <el-tab-pane :disabled="!(hasDocker && hasPermission)" :label="$t('镜像')" >
-          <el-table @cell-dblclick="tableDataCopy" style="height: 200px; width: 100%;" v-if="dockerInfo.image.length > 0" :data="dockerInfo.image" @selection-change="tableSelect" border stripe >
-            <el-table-column type="selection" width="40" fixed="left" />
-            <el-table-column show-overflow-tooltip prop="id" label="ID" width="130" />
-            <el-table-column show-overflow-tooltip prop="repository" :label="$t('仓库')" />
-            <el-table-column show-overflow-tooltip prop="size" :label="$t('大小')" width="100" />
-            <el-table-column show-overflow-tooltip prop="createTime" :label="$t('创建时间')" width="140" sortable />
-          </el-table>
+          <template v-if="dockerInfo.image.length > 0" >
+            <el-table @cell-dblclick="tableDataCopy" class="table-class" :data="dockerInfo.image" @selection-change="tableSelect" border stripe >
+              <el-table-column type="selection" width="40" fixed="left" />
+              <el-table-column show-overflow-tooltip prop="id" label="ID" width="130" />
+              <el-table-column show-overflow-tooltip prop="repository" :label="$t('仓库')" />
+              <el-table-column show-overflow-tooltip prop="size" :label="$t('大小')" width="100" />
+              <el-table-column show-overflow-tooltip prop="createTime" :label="$t('创建时间')" width="140" sortable />
+            </el-table>
+            <div class="kk-flex" style="height: 35px; margin-top: 5px;" >
+              <el-dropdown hide-timeout="300" >
+                <span class="a-link no-select" >{{ $t(deleteTypeArr[deleteType]) }}<el-icon class="el-icon--right" ><arrow-down /></el-icon></span>
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item class="no-select" @click="deleteType = 1" >{{ $t(deleteTypeArr[1]) }}</el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
+              <el-button :disabled="!(selectedItems.length > 0 && deleteType !== 0)" size="small" type="primary" @click="deleteConfirm" style="margin-left: 10px;" >
+                {{ $t('确定') }}
+              </el-button>
+              <div style="flex: 1;" ></div>
+              <div class="kk-flex hover-class" @click="getDockerInfo(1)" >
+                <el-icon style="font-size: 18px;" ><Refresh /></el-icon>
+                <div style="margin-left: 8px;" >{{ $t('刷新') }}</div>
+              </div>
+            </div>
+          </template>
           <div v-else >
             <NoData v-if="!loading" height="240px" ></NoData>
             <div v-else style="height: 240px;" ></div>
-          </div>
-          <div class="kk-flex" v-if="dockerInfo.image.length > 0" style="height: 35px; margin-top: 5px;" >
-            <el-dropdown hide-timeout="300" >
-              <span class="a-link no-select" >{{ $t(deleteTypeArr[deleteType]) }}<el-icon class="el-icon--right" ><arrow-down /></el-icon></span>
-              <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item class="no-select" @click="deleteType = 1" >{{ $t(deleteTypeArr[1]) }}</el-dropdown-item>
-                </el-dropdown-menu>
-              </template>
-            </el-dropdown>
-            <el-button :disabled="!(selectedItems.length > 0 && deleteType !== 0)" size="small" type="primary" @click="deleteConfirm" style="margin-left: 10px;" >
-              {{ $t('确定') }}
-            </el-button>
           </div>
         </el-tab-pane>
         <el-tab-pane :disabled="!(hasDocker && hasPermission)" :label="$t('网络')" >
-          <el-table @cell-dblclick="tableDataCopy" style="height: 200px; width: 100%;" v-if="dockerInfo.network.length > 0" :data="dockerInfo.network" @selection-change="tableSelect" border stripe >
-            <el-table-column type="selection" width="40" fixed="left" />
-            <el-table-column show-overflow-tooltip prop="name" :label="$t('名称')" width="140" />
-            <el-table-column show-overflow-tooltip prop="ip" label="IP" />
-            <el-table-column show-overflow-tooltip prop="gateway" :label="$t('网关')" width="120" />
-            <el-table-column show-overflow-tooltip prop="createTime" :label="$t('创建时间')" width="140" sortable />
-          </el-table>
+          <template v-if="dockerInfo.network.length > 0" >
+            <el-table @cell-dblclick="tableDataCopy" class="table-class" :data="dockerInfo.network" @selection-change="tableSelect" border stripe >
+              <el-table-column type="selection" width="40" fixed="left" />
+              <el-table-column show-overflow-tooltip prop="name" :label="$t('名称')" width="140" />
+              <el-table-column show-overflow-tooltip prop="ip" label="IP" />
+              <el-table-column show-overflow-tooltip prop="gateway" :label="$t('网关')" width="120" />
+              <el-table-column show-overflow-tooltip prop="createTime" :label="$t('创建时间')" width="140" sortable />
+            </el-table>
+            <div class="kk-flex" style="height: 35px; margin-top: 5px;" >
+              <el-dropdown hide-timeout="300" >
+                <span class="a-link no-select" >{{ $t(deleteTypeArr[deleteType]) }}<el-icon class="el-icon--right" ><arrow-down /></el-icon></span>
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item class="no-select" @click="deleteType = 2" >{{ $t(deleteTypeArr[2]) }}</el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
+              <el-button :disabled="!(selectedItems.length > 0 && deleteType !== 0)" size="small" type="primary" @click="deleteConfirm" style="margin-left: 10px;" >
+                {{ $t('确定') }}
+              </el-button>
+              <div style="flex: 1;" ></div>
+              <div class="kk-flex hover-class" @click="getDockerInfo(2)" >
+                <el-icon style="font-size: 18px;" ><Refresh /></el-icon>
+                <div style="margin-left: 8px;" >{{ $t('刷新') }}</div>
+              </div>
+            </div>
+          </template>
           <div v-else >
             <NoData v-if="!loading" height="240px" ></NoData>
             <div v-else style="height: 240px;" ></div>
-          </div>
-          <div class="kk-flex" v-if="dockerInfo.network.length > 0" style="height: 35px; margin-top: 5px;" >
-            <el-dropdown hide-timeout="300" >
-              <span class="a-link no-select" >{{ $t(deleteTypeArr[deleteType]) }}<el-icon class="el-icon--right" ><arrow-down /></el-icon></span>
-              <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item class="no-select" @click="deleteType = 2" >{{ $t(deleteTypeArr[2]) }}</el-dropdown-item>
-                </el-dropdown-menu>
-              </template>
-            </el-dropdown>
-            <el-button :disabled="!(selectedItems.length > 0 && deleteType !== 0)" size="small" type="primary" @click="deleteConfirm" style="margin-left: 10px;" >
-              {{ $t('确定') }}
-            </el-button>
           </div>
         </el-tab-pane>
         <el-tab-pane :disabled="!(hasDocker && hasPermission)" :label="$t('数据卷')" >
-          <el-table @cell-dblclick="tableDataCopy" style="height: 200px; width: 100%;" v-if="dockerInfo.volume.length > 0" :data="dockerInfo.volume" @selection-change="tableSelect" border stripe >
-            <el-table-column type="selection" width="40" fixed="left" />
-            <el-table-column show-overflow-tooltip prop="name" :label="$t('名称')" width="140" />
-            <el-table-column show-overflow-tooltip prop="mount" :label="$t('挂载点')" />
-            <el-table-column show-overflow-tooltip prop="createTime" :label="$t('创建时间')" width="140" sortable />
-          </el-table>
+          <template v-if="dockerInfo.volume.length > 0" >
+            <el-table @cell-dblclick="tableDataCopy" class="table-class" :data="dockerInfo.volume" @selection-change="tableSelect" border stripe >
+              <el-table-column type="selection" width="40" fixed="left" />
+              <el-table-column show-overflow-tooltip prop="name" :label="$t('名称')" width="140" />
+              <el-table-column show-overflow-tooltip prop="mount" :label="$t('挂载点')" />
+              <el-table-column show-overflow-tooltip prop="createTime" :label="$t('创建时间')" width="140" sortable />
+            </el-table>
+            <div class="kk-flex" style="height: 35px; margin-top: 5px;" >
+              <el-dropdown hide-timeout="300" >
+                <span class="a-link no-select" >{{ $t(deleteTypeArr[deleteType]) }}<el-icon class="el-icon--right" ><arrow-down /></el-icon></span>
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item class="no-select" @click="deleteType = 3" >{{ $t(deleteTypeArr[3]) }}</el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
+              <el-button :disabled="!(selectedItems.length > 0 && deleteType !== 0)" size="small" type="primary" @click="deleteConfirm" style="margin-left: 10px;" >
+                {{ $t('确定') }}
+              </el-button>
+              <div style="flex: 1;" ></div>
+              <div class="kk-flex hover-class" @click="getDockerInfo(3)" >
+                <el-icon style="font-size: 18px;" ><Refresh /></el-icon>
+                <div style="margin-left: 8px;" >{{ $t('刷新') }}</div>
+              </div>
+            </div>
+          </template>
           <div v-else >
             <NoData v-if="!loading" height="240px" ></NoData>
             <div v-else style="height: 240px;" ></div>
-          </div>
-          <div class="kk-flex" v-if="dockerInfo.volume.length > 0" style="height: 35px; margin-top: 5px;" >
-            <el-dropdown hide-timeout="300" >
-              <span class="a-link no-select" >{{ $t(deleteTypeArr[deleteType]) }}<el-icon class="el-icon--right" ><arrow-down /></el-icon></span>
-              <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item class="no-select" @click="deleteType = 3" >{{ $t(deleteTypeArr[3]) }}</el-dropdown-item>
-                </el-dropdown-menu>
-              </template>
-            </el-dropdown>
-            <el-button :disabled="!(selectedItems.length > 0 && deleteType !== 0)" size="small" type="primary" @click="deleteConfirm" style="margin-left: 10px;" >
-              {{ $t('确定') }}
-            </el-button>
           </div>
         </el-tab-pane>
       </el-tabs>
@@ -274,7 +311,7 @@ import NoData from "@/components/common/NoData";
 import { computed, ref } from "vue";
 import { request } from "@/utils/Request";
 import { http_base_url } from "@/env/Base";
-import { ArrowDown, ArrowLeft, Search, Document, Operation } from '@element-plus/icons-vue';
+import { ArrowDown, ArrowLeft, Search, Document, Operation, Refresh, TopRight } from '@element-plus/icons-vue';
 import i18n from "@/locales/i18n";
 import { ElMessage } from "element-plus";
 import { deleteDialog } from "@/components/common/DeleteDialog";
@@ -292,6 +329,8 @@ export default {
     Search,
     Document,
     Operation,
+    Refresh,
+    TopRight,
   },
   props: ['sshKey', 'advance'],
   setup(props, context) {
@@ -319,7 +358,7 @@ export default {
       image: [],
       network: [],
       volume: [],
-    }
+    };
     const dockerInfo = ref({...initDockerInfo});
     const getDockerVersion = (sshKey) => {
       loading.value = true;
@@ -455,7 +494,7 @@ export default {
       i18n.global.k('删除网络'),
       i18n.global.k('删除数据卷'),
     ];
-    const containerOperate = () => {
+    const operateContainer = () => {
       loading.value = true;
       const type = containerType.value - 1;
       request({
@@ -478,7 +517,7 @@ export default {
         }
       });
     };
-    const dockerDelete = () => {
+    const operateDelete = () => {
       loading.value = true;
       const type = deleteType.value;
       request({
@@ -502,10 +541,10 @@ export default {
       });
     };
     const operateConfirm = () => {
-      deleteDialog(i18n.global.t('提示'), i18n.global.t('确定进行此操作吗？'), containerOperate);
+      deleteDialog(i18n.global.t('提示'), i18n.global.t('确定进行此操作吗？'), operateContainer);
     };
     const deleteConfirm = () => {
-      deleteDialog(i18n.global.t('提示'), i18n.global.t('确定进行此操作吗？'), dockerDelete);
+      deleteDialog(i18n.global.t('提示'), i18n.global.t('确定进行此操作吗？'), operateDelete);
     };
 
     // 查看容器详细信息
@@ -703,10 +742,34 @@ export default {
   padding-bottom: 8px !important;
 }
 
-.app-title {
+.hover-class:hover {
+  color: #409eff;
+  cursor: pointer;
+}
+
+.table-class {
+  height: 200px;
+  width: 100%;
+}
+
+.app-name {
   color: #666;
   font-weight: bold;
   font-size: 16px;
+}
+
+.app-author {
+  color: #666;
+  font-size: 13px;
+}
+
+.app-details {
+  font-size: 13px;
+  margin-left: 4px;
+}
+
+.app-details:hover {
+  color: #79bbff;
 }
 
 .app-img-box {

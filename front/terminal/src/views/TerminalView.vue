@@ -260,8 +260,8 @@ import { changeStr, changeBase64Str, changeStrBase64, generateRandomString } fro
 import ConnectSetting from '@/components/connect/ConnectSetting';
 import PreferenceSetting from '@/components/preference/PreferenceSetting';
 import FileBlock from "@/components/file/FileBlock";
-import CmdCodeWorkflow from '@/components/cmdcode/CmdCodeWorkflow.vue';
-import CmdCodeCenter from "@/components/cmdcode/CmdCodeCenter.vue";
+import CmdCodeWorkflow from '@/components/cmdcode/CmdCodeWorkflow';
+import CmdCodeCenter from "@/components/cmdcode/CmdCodeCenter";
 import CooperateGen from '@/components/advance/CooperateGen';
 import StatusMonitor from '@/components/advance/StatusMonitor'
 import DockerBlock from "@/components/advance/docker/DockerBlock";
@@ -335,14 +335,14 @@ export default {
     }));
 
     // 连接状态
-    const connectStatusMap = ref({
+    const connectStatusDict = ref({
       'Fail': 'Fail to connect remote server !\r\n',
       'Success': 'Connecting success !\r\n',
       'Connecting': 'Connecting to remote server ...\r\n',
       'Disconnected': 'Disconnect to remote server.\r\n',
       'End': 'This Cooperation is Ended.\r\n',
     });
-    const currentConnectStatus = ref(connectStatusMap.value['Connecting']);
+    const currentConnectStatus = ref(connectStatusDict.value['Connecting']);
 
     // 获取当前组件实例
     const instance = getCurrentInstance();
@@ -598,13 +598,13 @@ export default {
         // 协作失败
         if(result.code === -2) {
           term.clear();
-          currentConnectStatus.value = connectStatusMap.value['Fail'];
+          currentConnectStatus.value = connectStatusDict.value['Fail'];
           termWrite(result.info + ".\n");
         }
         // 连接失败
         else if(result.code === -1) {
           term.clear();
-          currentConnectStatus.value = connectStatusMap.value['Fail'];
+          currentConnectStatus.value = connectStatusDict.value['Fail'];
           termWrite(currentConnectStatus.value);
           setTimeout(() => {
             doSettings(1);
@@ -613,7 +613,7 @@ export default {
         // 连接成功
         else if(result.code === 0) {
           term.clear();
-          currentConnectStatus.value = connectStatusMap.value['Success'];
+          currentConnectStatus.value = connectStatusDict.value['Success'];
           setTimeout(() => {
             termFit();
           }, 1);
@@ -673,15 +673,15 @@ export default {
       };
       // 断开连接
       socket.value.onclose = (e) => {
-        if(currentConnectStatus.value === connectStatusMap.value['Success'] && e.code !== 3333) {
+        if(currentConnectStatus.value === connectStatusDict.value['Success'] && e.code !== 3333) {
           sshKey.value = '';
           if(urlParams.value.cooperate) {
-            currentConnectStatus.value = connectStatusMap.value['End'];
+            currentConnectStatus.value = connectStatusDict.value['End'];
             termWrite("\r\n" + currentConnectStatus.value);
             return;
           }
           closeBlock();
-          currentConnectStatus.value = connectStatusMap.value['Disconnected'];
+          currentConnectStatus.value = connectStatusDict.value['Disconnected'];
           termWrite("\r\n" + currentConnectStatus.value);
         }
         UserCmdCodeHelper.reset();
@@ -821,7 +821,7 @@ export default {
       // 重启
       else if (type === 3) {
         showSettings(false);
-        currentConnectStatus.value = connectStatusMap.value['Connecting'];
+        currentConnectStatus.value = connectStatusDict.value['Connecting'];
         sshKey.value = '';
         if(socket.value) socket.value.close(3333);  // 主动释放资源，必需
         // 进行重启
@@ -1157,7 +1157,7 @@ export default {
       urlParams,
       options,
       currentConnectStatus,
-      connectStatusMap,
+      connectStatusDict,
       terminal,
       doSSHConnect,
       socket,

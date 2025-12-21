@@ -40,7 +40,7 @@ const getType = (type) => {
   return fileTypeSymbols[type];
 };
 
-const permissionMap = {
+const permissionDict = {
   'USR_R': 256,
   'USR_W': 128,
   'USR_X': 64,
@@ -59,22 +59,22 @@ const getAttrs = (attrs) => {
   let symbol = '---------';
   // 将权限数组转换为对应的权限值总和
   let permissionValue = 0;
-  for(let i=0;i<attrs.length;i++) if(permissionMap[attrs[i]]) permissionValue += permissionMap[attrs[i]];
+  for(let i=0;i<attrs.length;i++) if(permissionDict[attrs[i]]) permissionValue += permissionDict[attrs[i]];
 
   // 设置用户权限
-  symbol = setPermissionSymbol(symbol, 0, permissionValue & permissionMap['USR_R'], 'r');
-  symbol = setPermissionSymbol(symbol, 1, permissionValue & permissionMap['USR_W'], 'w');
-  symbol = setPermissionSymbol(symbol, 2, permissionValue & permissionMap['USR_X'], 'x', permissionValue & permissionMap['SUID'], 's', 'S');
+  symbol = setPermissionSymbol(symbol, 0, permissionValue & permissionDict['USR_R'], 'r');
+  symbol = setPermissionSymbol(symbol, 1, permissionValue & permissionDict['USR_W'], 'w');
+  symbol = setPermissionSymbol(symbol, 2, permissionValue & permissionDict['USR_X'], 'x', permissionValue & permissionDict['SUID'], 's', 'S');
 
   // 设置组权限
-  symbol = setPermissionSymbol(symbol, 3, permissionValue & permissionMap['GRP_R'], 'r');
-  symbol = setPermissionSymbol(symbol, 4, permissionValue & permissionMap['GRP_W'], 'w');
-  symbol = setPermissionSymbol(symbol, 5, permissionValue & permissionMap['GRP_X'], 'x', permissionValue & permissionMap['SGID'], 's', 'S');
+  symbol = setPermissionSymbol(symbol, 3, permissionValue & permissionDict['GRP_R'], 'r');
+  symbol = setPermissionSymbol(symbol, 4, permissionValue & permissionDict['GRP_W'], 'w');
+  symbol = setPermissionSymbol(symbol, 5, permissionValue & permissionDict['GRP_X'], 'x', permissionValue & permissionDict['SGID'], 's', 'S');
 
   // 设置其他权限
-  symbol = setPermissionSymbol(symbol, 6, permissionValue & permissionMap['OTH_R'], 'r');
-  symbol = setPermissionSymbol(symbol, 7, permissionValue & permissionMap['OTH_W'], 'w');
-  symbol = setPermissionSymbol(symbol, 8, permissionValue & permissionMap['OTH_X'], 'x', permissionValue & permissionMap['STICKY'], 't', 'T');
+  symbol = setPermissionSymbol(symbol, 6, permissionValue & permissionDict['OTH_R'], 'r');
+  symbol = setPermissionSymbol(symbol, 7, permissionValue & permissionDict['OTH_W'], 'w');
+  symbol = setPermissionSymbol(symbol, 8, permissionValue & permissionDict['OTH_X'], 'x', permissionValue & permissionDict['STICKY'], 't', 'T');
 
   return symbol;
 };

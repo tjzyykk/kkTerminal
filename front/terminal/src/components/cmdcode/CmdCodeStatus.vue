@@ -30,7 +30,7 @@ export default {
   },
   setup(props) {
 
-    const statusTypeMap = {
+    const statusTypeDict = {
       'Compile Error': -2,
       'Execute Interrupt': -1,
       'Not Active': 0,
@@ -40,14 +40,14 @@ export default {
     const statusColor = ['#f56c6c','#e6a23c','#909399','#67c23a'];
 
     const statusType = computed(() => {
-      return statusTypeMap[props.status] || 0;
+      return statusTypeDict[props.status] || 0;
     });
 
     const statusStyle = computed(() => {
       return {
         fontSize: '16px',
         ...props.style,
-        color: statusColor[(statusTypeMap[props.status] || 0) + 2],
+        color: statusColor[(statusTypeDict[props.status] || 0) + 2],
       }
     });
 

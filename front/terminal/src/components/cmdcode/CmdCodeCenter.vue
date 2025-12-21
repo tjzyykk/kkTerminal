@@ -139,7 +139,7 @@ import NoData from '@/components/common/NoData';
 import { ArrowRight, ArrowLeft, Edit, View, Finished, Delete } from '@element-plus/icons-vue';
 import AceEditor from '@/components/common/AceEditor';
 import { aesDecrypt } from '@/utils/Encrypt';
-import CmdCodeStatus from './CmdCodeStatus.vue';
+import CmdCodeStatus from './CmdCodeStatus';
 import { deleteDialog } from '@/components/common/DeleteDialog';
 import i18n from "@/locales/i18n";
 import { localStore } from "@/env/Store";

@@ -10,15 +10,17 @@ export const dockerAppTypes = [
     i18n.global.k('网盘存储'),
 ];
 
-const imgs = require.context('@/assets/apps', false, /.*/);
+const images = require.context('@/assets/apps', false, /.*/);
 const base_prefix = './';
 
 export const dockerAppStore = [
     {
         name: 'Custom',
+        author: 'Docker Hub',
+        link: 'https://hub.docker.com',
         desc: i18n.global.k('指定任意镜像进行应用部署'),
         type: 0,
-        img: imgs(base_prefix + 'custom.svg'),
+        img: images(base_prefix + 'custom.svg'),
         deployInfo: {
             imageName: '',
             imageVersion: '',
@@ -31,9 +33,11 @@ export const dockerAppStore = [
     },
     {
         name: 'kkTerminal',
+        author: 'zyyzyykk',
+        link: 'https://github.com/zyyzyykk/kkTerminal',
         desc: i18n.global.k('kkTerminal是一个强大的Web SSH连接终端'),
         type: 1,
-        img: imgs(base_prefix + 'kkTerminal.svg'),
+        img: images(base_prefix + 'kkTerminal.svg'),
         deployInfo: {
             imageName: 'zyyzyykk/kkterminal',
             imageVersion: 'latest',

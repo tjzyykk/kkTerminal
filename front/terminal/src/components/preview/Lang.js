@@ -1,4 +1,4 @@
-const langMapping = {
+const langMappingDict = {
     // common file types
     "c": "c_cpp",
     "cc": "c_cpp",
@@ -78,7 +78,7 @@ const getSuffix = (name) => {
 
 // 文件名 => 语言
 const langToMode = (name) => {
-    return langMapping[getSuffix(name)] || "text";
+    return langMappingDict[getSuffix(name)] || "text";
 };
 
 export default langToMode;

@@ -181,7 +181,7 @@ export const UserCmdCodeExecutor = {
             for (let i = 0; i < arguments.length; i++) {
                 delete cmdCodeLocalVars[arguments[i]];
             }
-            localStoreUtil.setItem(storageLocalKey,aesEncrypt(JSON.stringify(cmdCodeLocalVars)));
+            localStoreUtil.setItem(storageLocalKey, aesEncrypt(JSON.stringify(cmdCodeLocalVars)));
         }
     },
     // 写入后等待
