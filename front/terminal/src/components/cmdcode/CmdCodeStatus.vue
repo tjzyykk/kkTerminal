@@ -6,9 +6,13 @@
 </template>
 
 <script>
-import { computed } from 'vue';
-
-import { SuccessFilled, WarningFilled, CircleCloseFilled, InfoFilled } from '@element-plus/icons-vue'
+import { computed } from "vue";
+import {
+  SuccessFilled,
+  WarningFilled,
+  CircleCloseFilled,
+  InfoFilled,
+} from "@element-plus/icons-vue";
 
 export default {
   name: 'CmdCodeStatus',

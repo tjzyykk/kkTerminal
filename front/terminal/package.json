@@ -22,6 +22,7 @@
     "jsencrypt": "^3.3.2",
     "p-queue": "^9.0.0",
     "strip-ansi": "^7.1.0",
+    "uuid": "^13.0.0",
     "vue": "^3.2.13",
     "vue-clipboard3": "^2.0.0",
     "vue-i18n": "^10.0.5",
@@ -42,7 +43,16 @@
   "eslintConfig": {
     "root": true,
     "env": {
-      "node": true
+      "node": true,
+      "browser": false
+    },
+    "globals": {
+      "document": "readonly",
+      "window": "readonly",
+      "WebSocket": "readonly",
+      "FileReader": "readonly",
+      "ResizeObserver": "readonly",
+      "DOMMatrix": "readonly"
     },
     "extends": [
       "plugin:vue/vue3-essential",

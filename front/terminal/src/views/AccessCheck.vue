@@ -32,17 +32,17 @@
 </template>
 
 <script>
-import { ref } from 'vue';
+import { ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
-
+import browser from "@/utils/Browser";
 import { request } from "@/utils/Request";
 import { http_base_url } from "@/env/Base";
 import { localStore } from "@/env/Store";
 import { getUrlParams } from "@/utils/Url";
-import { syncDownload, localStoreUtil } from "@/utils/Cloud";
+import { syncDownload } from "@/utils/Cloud";
 import { rsaEncrypt, secretKeySetter } from "@/utils/Encrypt";
-import { ElMessage } from 'element-plus';
-import { Lock } from '@element-plus/icons-vue';
+import { ElMessage } from "element-plus";
+import { Lock } from "@element-plus/icons-vue";
 import i18n from "@/locales/i18n";
 
 export default {
@@ -99,7 +99,7 @@ export default {
     };
 
     // lang
-    i18n.global.locale = getUrlParams()['lang'] || localStoreUtil.getItem(localStore['lang']) || 'en';
+    i18n.global.locale = getUrlParams()['lang'] || browser.localStorage.getItem(localStore['lang']) || 'en';
 
     return {
       loading,

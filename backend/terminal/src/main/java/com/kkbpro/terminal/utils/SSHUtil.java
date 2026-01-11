@@ -17,6 +17,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 public class SSHUtil {
 
@@ -93,7 +94,7 @@ public class SSHUtil {
                 }
             }
             // 等待命令执行完毕
-            cmd.join();
+            cmd.join(Constant.CMD_EXECUTE_TIMEOUT, TimeUnit.SECONDS);
 
             return cmd.getExitStatus();
         }

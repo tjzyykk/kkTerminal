@@ -42,9 +42,10 @@
 </template>
 
 <script>
-import { ref } from 'vue';
-import { ElMessage } from 'element-plus';
-import { Lock, Key } from '@element-plus/icons-vue';
+import browser from "@/utils/Browser";
+import { ref } from "vue";
+import { ElMessage } from "element-plus";
+import { Lock, Key } from "@element-plus/icons-vue";
 import i18n from "@/locales/i18n";
 
 export default {
@@ -105,7 +106,7 @@ export default {
 
     // 关闭
     const closeDialog = (done) => {
-      setTimeout(() => {
+      browser.setTimeout(() => {
         reset();
       }, 400);
       DialogVisible.value = false;

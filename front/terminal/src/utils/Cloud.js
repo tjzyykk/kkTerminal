@@ -1,17 +1,18 @@
-import { aesDecrypt, aesEncrypt } from '@/utils/Encrypt';
-import { generateRandomString } from '@/utils/String';
+import browser from "@/utils/Browser";
+import { aesDecrypt, aesEncrypt } from "@/utils/Encrypt";
+import { generateRandomString } from "@/utils/String";
 
 import { request } from "@/utils/Request";
-import { http_base_url } from '@/env/Base';
-import { ElMessage } from 'element-plus';
+import { http_base_url } from "@/env/Base";
+import { ElMessage } from "element-plus";
 import i18n from "@/locales/i18n";
 import { localStore, cloudStore } from "@/env/Store";
 
 const getUserInfo = () => {
-  if(!localStorage.getItem(localStore['user'])) {
-    localStorage.setItem(localStore['user'], aesEncrypt(crypto.randomUUID() + '@' + generateRandomString(16) + '@' + new Date().getTime()));
+  if(!browser.localStorage.getItem(localStore['user'])) {
+    browser.localStorage.setItem(localStore['user'], aesEncrypt(crypto.randomUUID() + '@' + generateRandomString(16) + '@' + new Date().getTime()), false);
   }
-  const userInfo = aesDecrypt(localStorage.getItem(localStore['user'])).split('@');
+  const userInfo = aesDecrypt(browser.localStorage.getItem(localStore['user'])).split('@');
   return {
     name: userInfo[0],
     key: userInfo[1],
@@ -101,7 +102,7 @@ export const syncUpload = async (items) => {
   if(uploadItems.length === 0) return;
   const promises = [];
   for(const uploadItem of uploadItems) {
-    const content = localStorage.getItem(uploadItem);
+    const content = browser.localStorage.getItem(uploadItem);
     if(content) {
       const promise = cloudUpload(uploadItem, '', aesDecrypt(content));
       promises.push(promise);
@@ -112,38 +113,25 @@ export const syncUpload = async (items) => {
 };
 
 export const syncDownload = async (userInfo) => {
-  if(userInfo) localStorage.setItem(localStore['user'], userInfo);
+  if(userInfo) browser.localStorage.setItem(localStore['user'], userInfo, false);
   const promises = [];
   const uploadItems = [];
   const downloadItems = [...syncItems];
   for(const downloadItem of downloadItems) {
     const promise = cloudDownload(downloadItem);
     promise.then((content) => {
-      if(content) localStorage.setItem(downloadItem, aesEncrypt(JSON.stringify(content)));
+      if(content) browser.localStorage.setItem(downloadItem, aesEncrypt(JSON.stringify(content)), false);
       else {
-        if(userInfo) localStorage.removeItem(downloadItem);
-        else if(localStorage.getItem(downloadItem)) uploadItems.push(downloadItem);
+        if(userInfo) browser.localStorage.removeItem(downloadItem);
+        else if(browser.localStorage.getItem(downloadItem)) uploadItems.push(downloadItem);
       }
     });
     promises.push(promise);
   }
 
   return Promise.allSettled(promises).then(() => {
-    if(userInfo) window.location.reload();
+    if(userInfo) browser.location.reload();
     else if(uploadItems.length > 0) syncUpload(uploadItems);
   });
 };
 
-export const localStoreUtil = {
-  setItem(key, value) {
-    localStorage.setItem(key, value);
-    // 多端同步-上传
-    syncUpload([key]);
-  },
-  getItem(key) {
-    return localStorage.getItem(key);
-  },
-  removeItem(key) {
-    localStorage.removeItem(key);
-  },
-};

@@ -165,28 +165,28 @@
 </template>
 
 <script>
-import { ref, onUnmounted, onMounted, watch } from 'vue';
-import useClipboard from "vue-clipboard3";
+import { ref, onUnmounted, onMounted, watch } from "vue";
+import browser from "@/utils/Browser";
 import { request } from "@/utils/Request";
-import { ElMessage } from 'element-plus';
+import { ElMessage } from "element-plus";
 import { deleteDialog } from "@/components/common/DeleteDialog";
-import { http_base_url } from '@/env/Base';
-import { Refresh, Fold, Download, Upload, DocumentAdd, FolderAdd, Link, ArrowRight, Monitor } from '@element-plus/icons-vue';
-import { escapeItem, escapePath, osFileNaturalSort } from '@/utils/String';
-import { isZipFile } from '@/components/preview/FileSuffix';
-import { getChmodValue } from '@/components/calc/CalcPriority';
+import { http_base_url } from "@/env/Base";
+import { Refresh, Fold, Download, Upload, DocumentAdd, FolderAdd, Link, ArrowRight, Monitor } from "@element-plus/icons-vue";
+import { escapeItem, escapePath, osFileNaturalSort } from "@/utils/String";
+import { isZipFile } from "@/components/preview/FileSuffix";
+import { getChmodValue } from "@/components/calc/CalcPriority";
 import { getUrlParams, doUrlDownload } from "@/utils/Url";
 import { CmdCodeReservedVarsSetter } from "@/components/cmdcode/CmdCode";
 
-import ToolTip from '@/components/common/ToolTip';
-import NoData from '@/components/common/NoData';
-import FilePreview from '@/components/preview/FilePreview';
-import MkFile from './MkFile';
-import FileAttr from './FileAttr';
-import FileUrl from './FileUrl';
+import ToolTip from "@/components/common/ToolTip";
+import NoData from "@/components/common/NoData";
+import FilePreview from "@/components/preview/FilePreview";
+import MkFile from "./MkFile";
+import FileAttr from "./FileAttr";
+import FileUrl from "./FileUrl";
 
 import i18n from "@/locales/i18n";
-import FileIcons from 'file-icons-vue';
+import FileIcons from "file-icons-vue";
 import PQueue from "p-queue";
 
 export default {
@@ -214,9 +214,6 @@ export default {
 
     // 加载
     const loading = ref(true);
-
-    // 拷贝
-    const { toClipboard } = useClipboard();
 
     const files = ref([]);
     const selectedFiles = ref([]);
@@ -364,7 +361,7 @@ export default {
               noDataMsg.value = i18n.global.k('暂无文件');
               dirStatus.value = 0;
               lastSelectedIndex = -1;
-              setTimeout(() => {
+              browser.setTimeout(() => {
                 fileAreaRef.value.tabindex = '0';
                 fileAreaRef.value.focus();
               }, 1);
@@ -387,7 +384,7 @@ export default {
               noDataMsg.value = resp.info;
               dirStatus.value = 1;
               lastSelectedIndex = -1;
-              setTimeout(() => {
+              browser.setTimeout(() => {
                 fileAreaRef.value.tabindex = '0';
                 fileAreaRef.value.focus();
               }, 1);
@@ -409,7 +406,7 @@ export default {
         lastSelectedIndex = fileInfo.index;
         selectedFiles.value = [];
         selectedFiles.value.push(fileInfo);
-        setTimeout(() => {
+        browser.setTimeout(() => {
           fileAreaRef.value.scrollTop = 31 * fileInfo.index;
         }, 1);
       }
@@ -500,7 +497,7 @@ export default {
         // 允许上传空文件
         const chunks = Math.max(1, Math.ceil(fileSize / chunkSize));
         // 文件ID
-        const fileId = crypto.randomUUID();
+        const fileId = browser.crypto.randomUUID();
         file.uid = fileId;
         const path = config.path ? config.path : dir.value;
         const key = props.sshKey;
@@ -628,7 +625,7 @@ export default {
                   grouping: true,
                 });
                 if(path === dir.value) {
-                  setTimeout(() => {
+                  browser.setTimeout(() => {
                     getDirList();
                   }, Math.min(1000, 500 + chunks * 10));
                 }
@@ -648,7 +645,7 @@ export default {
     const doShowDirInput = (event) => {
       stopEvent(event);
       isShowDirInput.value = true;
-      setTimeout(() => {
+      browser.setTimeout(() => {
         document.querySelector('#aimDirInput').focus();
       }, 1);
     };
@@ -796,7 +793,7 @@ export default {
           }
           else {
             const path = dir.value + (selectedFiles.value.length === 1 ? selectedFiles.value[0].name : '');
-            await toClipboard(path);
+            await browser.navigator.clipboard.writeText(path);
             ElMessage({
               message: i18n.global.t('复制成功'),
               type: 'success',
@@ -819,7 +816,7 @@ export default {
           if(selectedFiles.value.length === 1) {
             renameFile.value = {...selectedFiles.value[0]};
             isShowRenameInput.value = true;
-            setTimeout(() => {
+            browser.setTimeout(() => {
               document.querySelector('#rename').focus();
             }, 1);
           }
@@ -870,7 +867,7 @@ export default {
       stopEvent(event);
     };
     // 左键点击空白处
-    const handleClick = () => {
+    const handleClick = (event) => {
       if(event.target.id === 'fileArea') selectedFiles.value = [];
       stopEvent(event);
     };
@@ -1293,7 +1290,7 @@ export default {
       if(mkFileRef.value && mkFileRef.value.DialogVisible) mkFileRef.value.closeDialog();
       if(fileAttrRef.value && fileAttrRef.value.DialogVisible) fileAttrRef.value.closeDialog();
       if(fileUrlRef.value && fileUrlRef.value.DialogVisible) fileUrlRef.value.closeDialog();
-      setTimeout(() => {
+      browser.setTimeout(() => {
         reset();
       }, 400);
       DialogVisible.value = false;
@@ -1306,7 +1303,7 @@ export default {
       if(mkFileRef.value) mkFileRef.value.closeDialog();
       if(fileAttrRef.value) fileAttrRef.value.closeDialog();
       if(fileUrlRef.value) fileUrlRef.value.closeDialog();
-      setTimeout(() => {
+      browser.setTimeout(() => {
         reset(true);
       }, 400);
       DialogVisible.value = false;

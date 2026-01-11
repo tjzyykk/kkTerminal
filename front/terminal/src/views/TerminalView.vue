@@ -242,30 +242,30 @@
 </template>
 
 <script>
-import useClipboard from "vue-clipboard3";
-import { ref, onMounted, onUnmounted, getCurrentInstance } from 'vue';
-import { secretKeyGetter, aesEncrypt, aesDecrypt, rsaEncrypt } from '@/utils/Encrypt';
-import { ElMessage } from 'element-plus';
+import browser from "@/utils/Browser";
+import { ref, onMounted, onUnmounted, getCurrentInstance } from "vue";
+import { secretKeyGetter, aesEncrypt, aesDecrypt, rsaEncrypt } from "@/utils/Encrypt";
+import { ElMessage } from "element-plus";
 
-import { Terminal } from 'xterm';
-import { FitAddon } from 'xterm-addon-fit';
-import { WebLinksAddon } from '@xterm/addon-web-links';
+import { Terminal } from "xterm";
+import { FitAddon } from "xterm-addon-fit";
+import { WebLinksAddon } from "@xterm/addon-web-links";
 import "xterm/css/xterm.css";
 
 import { request } from "@/utils/Request";
-import { default_env } from '@/env/Env';
-import { http_base_url, ws_base_url } from '@/env/Base';
-import { changeStr, changeBase64Str, changeStrBase64, generateRandomString } from '@/utils/String';
+import { default_env } from "@/env/Env";
+import { http_base_url, ws_base_url } from "@/env/Base";
+import { changeStr, changeBase64Str, changeStrBase64, generateRandomString } from "@/utils/String";
 
-import ConnectSetting from '@/components/connect/ConnectSetting';
-import PreferenceSetting from '@/components/preference/PreferenceSetting';
+import ConnectSetting from "@/components/connect/ConnectSetting";
+import PreferenceSetting from "@/components/preference/PreferenceSetting";
 import FileBlock from "@/components/file/FileBlock";
-import CmdCodeWorkflow from '@/components/cmdcode/CmdCodeWorkflow';
+import CmdCodeWorkflow from "@/components/cmdcode/CmdCodeWorkflow";
 import CmdCodeCenter from "@/components/cmdcode/CmdCodeCenter";
-import CooperateGen from '@/components/advance/CooperateGen';
-import StatusMonitor from '@/components/advance/StatusMonitor'
+import CooperateGen from "@/components/advance/CooperateGen";
+import StatusMonitor from "@/components/advance/StatusMonitor";
 import DockerBlock from "@/components/advance/docker/DockerBlock";
-import { getUrlParams, getPureUrl, doUrlDownload } from '@/utils/Url';
+import { getUrlParams, getPureUrl, doUrlDownload } from "@/utils/Url";
 import {
   QuestionFilled,
   VideoPlay,
@@ -275,7 +275,7 @@ import {
   UserFilled,
   FolderOpened,
   CircleClose,
-} from '@element-plus/icons-vue';
+} from "@element-plus/icons-vue";
 import {
   FuncCmdCode,
   SysCmdCode,
@@ -286,7 +286,7 @@ import {
 } from "@/components/cmdcode/CmdCode";
 
 import i18n from "@/locales/i18n";
-import { cloudUpload, cloudDownload, syncUpload, syncDownload, localStoreUtil } from "@/utils/Cloud";
+import { cloudUpload, cloudDownload, syncUpload, syncDownload } from "@/utils/Cloud";
 import { deleteDialog } from "@/components/common/DeleteDialog";
 import { calcType } from "@/components/calc/CalcType";
 import { calcSize } from "@/components/calc/CalcSize";
@@ -347,9 +347,6 @@ export default {
     // 获取当前组件实例
     const instance = getCurrentInstance();
 
-    // 拷贝
-    const { toClipboard } = useClipboard();
-
     // 终端插件
     const fitAddon = new FitAddon();              // 宽高自适应
     const webLinksAddon = new WebLinksAddon();    // 网页链接跳转
@@ -374,7 +371,7 @@ export default {
         content: '\r\nRecord ' + recordId.value + ' Over.',
       });
       cloudUpload('record-', recordId.value, JSON.stringify(recordInfo.value)).then(() => {
-        toClipboard(getPureUrl() + '?record=' + recordId.value).then(() => {
+        browser.navigator.clipboard.writeText(getPureUrl() + '?record=' + recordId.value).then(() => {
           ElMessage({
             message: i18n.global.t('录像链接已复制'),
             type: 'success',
@@ -388,7 +385,7 @@ export default {
       if(record) termWrite(record.content);
       const nextRecord = recordInfo.value[index + 1];
       if(nextRecord) {
-        setTimeout(() => {
+        browser.setTimeout(() => {
           playRecord(index + 1);
         }, nextRecord.time - record.time);
       }
@@ -399,8 +396,8 @@ export default {
       if(urlParams.value.user) deleteDialog(i18n.global.t('提示'), i18n.global.t('确定从云端覆盖本地数据吗？'), doSyncDownload);
       else {
         await syncUpload();
-        const link = getPureUrl() + '?user=' + changeBase64Str(localStoreUtil.getItem(localStore['user']));
-        await toClipboard(link);
+        const link = getPureUrl() + '?user=' + changeBase64Str(browser.localStorage.getItem(localStore['user']));
+        await browser.navigator.clipboard.writeText(link);
         ElMessage({
           message: i18n.global.t('多端同步链接已复制'),
           type: 'success',
@@ -416,17 +413,17 @@ export default {
     // 加载环境变量
     const options = ref({});
     const loadOps = () => {
-      if(localStoreUtil.getItem(localStore['options'])) options.value = JSON.parse(aesDecrypt(localStoreUtil.getItem(localStore['options'])));
+      if(browser.localStorage.getItem(localStore['options'])) options.value = JSON.parse(aesDecrypt(browser.localStorage.getItem(localStore['options'])));
       else options.value = {};
     };
     loadOps();
     const cmdcodes = ref({});
     const loadCmdCodes = () => {
       cmdcodes.value = {};
-      if(localStoreUtil.getItem(localStore['cmdcodes'])) {
-        cmdcodes.value = JSON.parse(aesDecrypt(localStoreUtil.getItem(localStore['cmdcodes'])));
+      if(browser.localStorage.getItem(localStore['cmdcodes'])) {
+        cmdcodes.value = JSON.parse(aesDecrypt(browser.localStorage.getItem(localStore['cmdcodes'])));
       }
-      setTimeout(() => {
+      browser.setTimeout(() => {
         cmdCodeCenterRef.value.userCmdCodes = {...cmdcodes.value};
       }, 1);
     };
@@ -434,9 +431,9 @@ export default {
     const env = ref(default_env);
     const urlParams = ref(getUrlParams());
     const loadEnv = () => {
-      if(localStoreUtil.getItem(localStore['env'])) env.value = {...env.value, ...JSON.parse(aesDecrypt(localStoreUtil.getItem(localStore['env'])))};
+      if(browser.localStorage.getItem(localStore['env'])) env.value = {...env.value, ...JSON.parse(aesDecrypt(browser.localStorage.getItem(localStore['env'])))};
       // login lang
-      localStoreUtil.setItem(localStore['lang'], env.value.lang);
+      browser.localStorage.setItem(localStore['lang'], env.value.lang);
       // # bg fg
       if(urlParams.value.bg && urlParams.value.bg[0] !== '#') urlParams.value.bg = '#' + urlParams.value.bg;
       if(urlParams.value.fg && urlParams.value.fg[0] !== '#') urlParams.value.fg = '#' + urlParams.value.fg;
@@ -482,7 +479,7 @@ export default {
     // 保存更改的配置
     const saveOp = (name, item) => {
       if(name) options.value = {...options.value, [name]: item};
-      localStoreUtil.setItem(localStore['options'], aesEncrypt(JSON.stringify(options.value)));
+      browser.localStorage.setItem(localStore['options'], aesEncrypt(JSON.stringify(options.value)));
       loadOps();
     };
     // 删除配置
@@ -606,7 +603,7 @@ export default {
           term.clear();
           currentConnectStatus.value = connectStatusDict.value['Fail'];
           termWrite(currentConnectStatus.value);
-          setTimeout(() => {
+          browser.setTimeout(() => {
             doSettings(1);
           }, 400);
         }
@@ -614,7 +611,7 @@ export default {
         else if(result.code === 0) {
           term.clear();
           currentConnectStatus.value = connectStatusDict.value['Success'];
-          setTimeout(() => {
+          browser.setTimeout(() => {
             termFit();
           }, 1);
           // 协作成功
@@ -628,7 +625,7 @@ export default {
             if(urlParams.value.cmd.toLowerCase().startsWith('bash:')) sendMessage(urlParams.value.cmd.substring(5) + "\n");
             // 命令代码命令
             else if(urlParams.value.cmd.toLowerCase().startsWith('code:')) {
-              setTimeout(() => {
+              browser.setTimeout(() => {
                 cmdcode.value = urlParams.value.cmd.substring(5);
                 handleCmdCode({key: 'Enter'});
               }, 400);
@@ -700,7 +697,7 @@ export default {
     const showAdvance = (newVal) => {
       if(advanceTimer) clearTimeout(advanceTimer);
       if(isShowAdvance.value !== newVal) {
-        advanceTimer = setTimeout(() => {
+        advanceTimer = browser.setTimeout(() => {
           isShowAdvance.value = newVal;
         }, 400);
       }
@@ -714,9 +711,9 @@ export default {
     // 保存更改的环境变量
     const saveEnv = (new_env, restart=true) => {
       let save_env = default_env;
-      if(localStoreUtil.getItem(localStore['env'])) save_env = {...save_env, ...JSON.parse(aesDecrypt(localStoreUtil.getItem(localStore['env'])))};
+      if(browser.localStorage.getItem(localStore['env'])) save_env = {...save_env, ...JSON.parse(aesDecrypt(browser.localStorage.getItem(localStore['env'])))};
       save_env = {...save_env, ...new_env};
-      localStoreUtil.setItem(localStore['env'], aesEncrypt(JSON.stringify(save_env)));
+      browser.localStorage.setItem(localStore['env'], aesEncrypt(JSON.stringify(save_env)));
       for (const key in new_env) {
         if(key in urlParams.value) urlParams.value[key] = new_env[key];
       }
@@ -758,7 +755,7 @@ export default {
     const doPaste = async (event) => {
       event.preventDefault();   // 阻止默认的上下文菜单弹出
       event.stopPropagation();
-      const pasteText = await navigator.clipboard.readText();
+      const pasteText = await browser.navigator.clipboard.readText();
       sendMessage(pasteText);
     };
 
@@ -793,7 +790,7 @@ export default {
       term.onSelectionChange(async () => {
         if (term.hasSelection()) {
           const copyText = term.getSelection();
-          if(copyText.trim()) await toClipboard(copyText);
+          if(copyText.trim()) await browser.navigator.clipboard.writeText(copyText);
         }
       });
 
@@ -851,7 +848,7 @@ export default {
       else if(type === 7) {
         if(!(sshKey.value && env.value.advance)) return;
         showSettings(false);
-        setTimeout(() => {
+        browser.setTimeout(() => {
           statusMonitorRef.value.updateNetworkData();
           statusMonitorRef.value.updateDiskData();
         }, 1);
@@ -870,7 +867,7 @@ export default {
     let timer = null;
     const doHeartBeat = () => {
       if(!timer) {
-        timer = setInterval(() => {
+        timer = browser.setInterval(() => {
           if(socket.value && socket.value.readyState === WebSocket.OPEN) {
             socket.value.send(aesEncrypt(JSON.stringify({type: 2, content: "", rows: 0, cols: 0}), secretKey.value));
           }
@@ -909,8 +906,8 @@ export default {
 
     const setCmdCodeStatus = (transCmdCode, state) => {
       cmdcodes.value[transCmdCode].status = state;
-      localStoreUtil.setItem(localStore['cmdcodes'], aesEncrypt(JSON.stringify(cmdcodes.value)));
-      setTimeout(() => {
+      browser.localStorage.setItem(localStore['cmdcodes'], aesEncrypt(JSON.stringify(cmdcodes.value)));
+      browser.setTimeout(() => {
         cmdCodeCenterRef.value.userCmdCodes = {...cmdcodes.value};
       }, 1);
     };
@@ -1017,13 +1014,13 @@ export default {
     // 批量导入CmdCode
     const importCmdCodes = (data) => {
       const cmdCodeData = {...cmdcodes.value, ...data};
-      localStoreUtil.setItem(localStore['cmdcodes'], aesEncrypt(JSON.stringify(cmdCodeData)));
+      browser.localStorage.setItem(localStore['cmdcodes'], aesEncrypt(JSON.stringify(cmdCodeData)));
       loadCmdCodes();
     };
     // 批量导出命令代码
     const exportCmdCodes = () => {
       let content = {};
-      if(localStoreUtil.getItem(localStore['cmdcodes'])) content = JSON.parse(aesDecrypt(localStoreUtil.getItem(localStore['cmdcodes'])));
+      if(browser.localStorage.getItem(localStore['cmdcodes'])) content = JSON.parse(aesDecrypt(browser.localStorage.getItem(localStore['cmdcodes'])));
       // 创建 Blob 对象
       const blob = new Blob([JSON.stringify(content, null, 4)], { type: 'text/plain' });
       // 创建指向 Blob 的 URL
@@ -1050,7 +1047,7 @@ export default {
 
     // 监听窗口大小变化，自动调整终端大小
     const listenResize = () => {
-      window.addEventListener('resize', () => {
+      browser.addEventListener('resize', () => {
         if(fileBlockRef.value) {
           fileBlockRef.value.isShowMenu = false;
           fileBlockRef.value.isShowPop = false;

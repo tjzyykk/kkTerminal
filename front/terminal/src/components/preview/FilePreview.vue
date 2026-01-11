@@ -111,17 +111,17 @@
 </template>
 
 <script>
-import { ref } from 'vue';
-import AceEditor from '@/components/common/AceEditor';
+import { ref } from "vue";
+import AceEditor from "@/components/common/AceEditor";
 import { request } from "@/utils/Request";
-import useClipboard from "vue-clipboard3";
-import { ElMessage } from 'element-plus';
-import { previewFileInfo } from '@/components/preview/FileSuffix';
-import { changeStr2 } from '@/utils/String';
+import browser from "@/utils/Browser";
+import { ElMessage } from "element-plus";
+import { previewFileInfo } from "@/components/preview/FileSuffix";
+import { changeStr2 } from "@/utils/String";
 import { getUrlParams } from "@/utils/Url";
 import { encodeStrToArray, decodeArrayToStr } from "@/components/preview/Encode";
-import { ArrowDown, DocumentCopy } from '@element-plus/icons-vue';
-import FileIcons from 'file-icons-vue';
+import { ArrowDown, DocumentCopy } from "@element-plus/icons-vue";
+import FileIcons from "file-icons-vue";
 import i18n from "@/locales/i18n";
 
 export default {
@@ -289,9 +289,6 @@ export default {
       iframeImg.height = (imgHeight.value * percentage.value) / 100;
     };
 
-    // 拷贝
-    const { toClipboard } = useClipboard();
-
     // 复制
     const doCopy = async () => {
       const content = codeEditorRef.value.getValue();
@@ -304,7 +301,7 @@ export default {
         });
         return;
       }
-      await toClipboard(content);
+      await browser.navigator.clipboard.writeText(content);
       ElMessage({
         message: i18n.global.t('复制成功'),
         type: 'success',
@@ -346,7 +343,7 @@ export default {
 
     // 关闭
     const closeDialog = (done) => {
-      setTimeout(() => {
+      browser.setTimeout(() => {
         reset(true);
       }, 400);
       DialogVisible.value = false;

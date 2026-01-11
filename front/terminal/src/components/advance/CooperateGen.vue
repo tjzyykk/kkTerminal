@@ -42,10 +42,10 @@
 </template>
 
 <script>
-import { ref,computed } from 'vue';
-import useClipboard from "vue-clipboard3";
-import { ElMessage } from 'element-plus';
-import { http_base_url } from '@/env/Base';
+import { ref,computed } from "vue";
+import browser from "@/utils/Browser";
+import { ElMessage } from "element-plus";
+import { http_base_url } from "@/env/Base";
 import i18n from "@/locales/i18n";
 import { request } from "@/utils/Request";
 import { getPureUrl } from "@/utils/Url";
@@ -64,9 +64,6 @@ export default {
     const isReadOnly = ref(true);
     const maxCapacity = ref(6);
 
-    // 拷贝
-    const { toClipboard } = useClipboard();
-
     // 确定
     const confirm = async () => {
       const capacity = maxCapacity.value;
@@ -81,7 +78,7 @@ export default {
         async success(resp) {
           if(resp.status === 'success') {
             const link = getPureUrl() + '?cooperate=' + resp.data;
-            await toClipboard(link);
+            await browser.navigator.clipboard.writeText(link);
             ElMessage({
               message: i18n.global.t('协作链接已复制'),
               type: 'success',
@@ -112,7 +109,7 @@ export default {
 
     // 关闭
     const closeDialog = (done) => {
-      setTimeout(() => {
+      browser.setTimeout(() => {
         reset();
       }, 400);
       DialogVisible.value = false;

@@ -3,59 +3,59 @@
 </template>
 
 <script>
-import { ref, onMounted, onUnmounted } from 'vue';
-import ace from 'ace-builds/src-noconflict/ace';
-import 'ace-builds/src-noconflict/ext-searchbox';
-import 'ace-builds/src-noconflict/theme-chrome';
+import { ref, onMounted, onUnmounted } from "vue";
+import ace from "ace-builds/src-noconflict/ace";
+import "ace-builds/src-noconflict/ext-searchbox";
+import "ace-builds/src-noconflict/theme-chrome";
 
 
 // 引入语言高亮样式
-import 'ace-builds/src-noconflict/mode-c_cpp';
-import 'ace-builds/src-noconflict/mode-csharp';
-import 'ace-builds/src-noconflict/mode-css';
-import 'ace-builds/src-noconflict/mode-gitignore';
-import 'ace-builds/src-noconflict/mode-golang';
-import 'ace-builds/src-noconflict/mode-html';
-import 'ace-builds/src-noconflict/mode-ini';
-import 'ace-builds/src-noconflict/mode-java';
-import 'ace-builds/src-noconflict/mode-javascript';
-import 'ace-builds/src-noconflict/mode-json';
-import 'ace-builds/src-noconflict/mode-jsp';
-import 'ace-builds/src-noconflict/mode-markdown';
-import 'ace-builds/src-noconflict/mode-properties';
-import 'ace-builds/src-noconflict/mode-python';
-import 'ace-builds/src-noconflict/mode-sh';
-import 'ace-builds/src-noconflict/mode-sql';
-import 'ace-builds/src-noconflict/mode-typescript';
-import 'ace-builds/src-noconflict/mode-text';
-import 'ace-builds/src-noconflict/mode-xml';
-import 'ace-builds/src-noconflict/mode-yaml';
+import "ace-builds/src-noconflict/mode-c_cpp";
+import "ace-builds/src-noconflict/mode-csharp";
+import "ace-builds/src-noconflict/mode-css";
+import "ace-builds/src-noconflict/mode-gitignore";
+import "ace-builds/src-noconflict/mode-golang";
+import "ace-builds/src-noconflict/mode-html";
+import "ace-builds/src-noconflict/mode-ini";
+import "ace-builds/src-noconflict/mode-java";
+import "ace-builds/src-noconflict/mode-javascript";
+import "ace-builds/src-noconflict/mode-json";
+import "ace-builds/src-noconflict/mode-jsp";
+import "ace-builds/src-noconflict/mode-markdown";
+import "ace-builds/src-noconflict/mode-properties";
+import "ace-builds/src-noconflict/mode-python";
+import "ace-builds/src-noconflict/mode-sh";
+import "ace-builds/src-noconflict/mode-sql";
+import "ace-builds/src-noconflict/mode-typescript";
+import "ace-builds/src-noconflict/mode-text";
+import "ace-builds/src-noconflict/mode-xml";
+import "ace-builds/src-noconflict/mode-yaml";
 
 // 引入智能提示
-import 'ace-builds/src-noconflict/ext-language_tools';
-import 'ace-builds/src-noconflict/snippets/c_cpp';
-import 'ace-builds/src-noconflict/snippets/csharp';
-import 'ace-builds/src-noconflict/snippets/css';
-import 'ace-builds/src-noconflict/snippets/gitignore';
-import 'ace-builds/src-noconflict/snippets/golang';
-import 'ace-builds/src-noconflict/snippets/html';
-import 'ace-builds/src-noconflict/snippets/ini';
-import 'ace-builds/src-noconflict/snippets/java';
-import 'ace-builds/src-noconflict/snippets/javascript';
-import 'ace-builds/src-noconflict/snippets/json';
-import 'ace-builds/src-noconflict/snippets/jsp';
-import 'ace-builds/src-noconflict/snippets/markdown';
-import 'ace-builds/src-noconflict/snippets/properties';
-import 'ace-builds/src-noconflict/snippets/python';
-import 'ace-builds/src-noconflict/snippets/sh';
-import 'ace-builds/src-noconflict/snippets/sql';
-import 'ace-builds/src-noconflict/snippets/typescript';
-import 'ace-builds/src-noconflict/snippets/text';
-import 'ace-builds/src-noconflict/snippets/xml';
-import 'ace-builds/src-noconflict/snippets/yaml';
+import "ace-builds/src-noconflict/ext-language_tools";
+import "ace-builds/src-noconflict/snippets/c_cpp";
+import "ace-builds/src-noconflict/snippets/csharp";
+import "ace-builds/src-noconflict/snippets/css";
+import "ace-builds/src-noconflict/snippets/gitignore";
+import "ace-builds/src-noconflict/snippets/golang";
+import "ace-builds/src-noconflict/snippets/html";
+import "ace-builds/src-noconflict/snippets/ini";
+import "ace-builds/src-noconflict/snippets/java";
+import "ace-builds/src-noconflict/snippets/javascript";
+import "ace-builds/src-noconflict/snippets/json";
+import "ace-builds/src-noconflict/snippets/jsp";
+import "ace-builds/src-noconflict/snippets/markdown";
+import "ace-builds/src-noconflict/snippets/properties";
+import "ace-builds/src-noconflict/snippets/python";
+import "ace-builds/src-noconflict/snippets/sh";
+import "ace-builds/src-noconflict/snippets/sql";
+import "ace-builds/src-noconflict/snippets/typescript";
+import "ace-builds/src-noconflict/snippets/text";
+import "ace-builds/src-noconflict/snippets/xml";
+import "ace-builds/src-noconflict/snippets/yaml";
 
-import langToMode from '@/components/preview/Lang';
-import { userCmdCodeExecutorCompleter } from '@/components/cmdcode/CmdCode';
+import langToMode from "@/components/preview/Lang";
+import { userCmdCodeExecutorCompleter } from "@/components/cmdcode/CmdCode";
 
 export default {
   name: 'AceEditor',

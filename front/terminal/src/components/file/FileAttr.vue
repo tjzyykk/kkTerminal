@@ -104,22 +104,20 @@
 </template>
 
 <script>
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch } from "vue";
 import { request } from "@/utils/Request";
-import { http_base_url } from '@/env/Base';
-import { calcDate } from '@/components/calc/CalcDate';
-import { calcPriority } from '@/components/calc/CalcPriority';
-import { ElMessage } from 'element-plus';
-import useClipboard from "vue-clipboard3";
-import { DocumentCopy, Refresh, Edit } from '@element-plus/icons-vue';
-import { calcSize } from '@/components/calc/CalcSize';
-import { escapeItem, escapePath } from '@/utils/String';
-import ToolTip from '@/components/common/ToolTip';
-import PermissionsEdit from './PermissionsEdit';
+import { http_base_url } from "@/env/Base";
+import { calcDate } from "@/components/calc/CalcDate";
+import { calcPriority } from "@/components/calc/CalcPriority";
+import { ElMessage } from "element-plus";
+import browser from "@/utils/Browser";
+import { DocumentCopy, Refresh, Edit } from "@element-plus/icons-vue";
+import { calcSize } from "@/components/calc/CalcSize";
+import { escapeItem, escapePath } from "@/utils/String";
+import ToolTip from "@/components/common/ToolTip";
+import PermissionsEdit from "./PermissionsEdit";
 import i18n from "@/locales/i18n";
-
-// 引入文件图标组件
-import FileIcons from 'file-icons-vue';
+import FileIcons from "file-icons-vue";
 
 export default {
   name: 'FileAttr',
@@ -133,8 +131,6 @@ export default {
   },
   props: ['sshKey', 'uploadingList'],
   setup(props, context) {
-    // 拷贝
-    const { toClipboard } = useClipboard();
 
     // 控制Dialog显示
     const DialogVisible = ref(false);
@@ -239,7 +235,7 @@ export default {
         });
         return;
       }
-      await toClipboard(content);
+      await browser.navigator.clipboard.writeText(content);
       ElMessage({
         message: i18n.global.t('复制成功'),
         type: 'success',
@@ -291,7 +287,7 @@ export default {
     watch(uploading, (newVal) => {
       if(newVal === false) {
         if(fileDir.value && fileInfo.value.name) {
-          setTimeout(() => {
+          browser.setTimeout(() => {
             if(fileInfo.value.isDirectory) getFolderInclude();
             else getFileSize();
           }, 1);
@@ -302,7 +298,7 @@ export default {
     // 关闭
     const closeDialog = (done) => {
       if(permissionsEditRef.value) permissionsEditRef.value.closeDialog();
-      setTimeout(() => {
+      browser.setTimeout(() => {
         reset();
       }, 400);
       DialogVisible.value = false;

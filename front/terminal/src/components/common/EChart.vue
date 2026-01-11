@@ -3,8 +3,8 @@
 </template>
 
 <script>
-import { onMounted, ref } from 'vue';
-import * as echarts from 'echarts';
+import { onMounted, ref } from "vue";
+import * as echarts from "echarts";
 
 export default {
   name: 'EChart',

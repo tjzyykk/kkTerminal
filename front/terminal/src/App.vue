@@ -13,9 +13,10 @@ import { ref, onMounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
 
 import { request } from "@/utils/Request";
-import { http_base_url } from '@/env/Base';
+import { http_base_url } from "@/env/Base";
 import { syncDownload } from "@/utils/Cloud";
 import { secretKeySetter } from "@/utils/Encrypt";
+import browser from "@/utils/Browser";
 
 export default {
   name: 'App',
@@ -32,7 +33,7 @@ export default {
     const osInfo = ref(null);
 
     onMounted(() => {
-      setTimeout(() => {
+      browser.setTimeout(() => {
         request({
           url: http_base_url + '/system/init',
           type: 'post',
@@ -63,7 +64,7 @@ export default {
                   ...route.query,
                 },
               });
-              setTimeout(() => {
+              browser.setTimeout(() => {
                 isInitialized.value = true;
               }, 1);
               loading.value = false;

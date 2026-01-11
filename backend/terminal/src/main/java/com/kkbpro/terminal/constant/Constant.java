@@ -14,6 +14,9 @@ public class Constant {
     // SSH Connect Timeout (ms)
     public static final Integer SSH_CONNECT_TIMEOUT = 20000;
 
+    // Command Execute Timeout (s)
+    public static final Integer CMD_EXECUTE_TIMEOUT = 10;
+
     // Buffer Size (B)
     public static final Integer BUFFER_SIZE = 256 * 1024;
 

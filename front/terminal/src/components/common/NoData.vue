@@ -13,7 +13,7 @@
 </template>
 
 <script>
-import { computed } from 'vue';
+import { computed } from "vue";
 import i18n from "@/locales/i18n";
 
 export default {

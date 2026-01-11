@@ -26,10 +26,11 @@
 </template>
 
 <script>
+import browser from "@/utils/Browser";
 import { ref } from "vue";
 import { request } from "@/utils/Request";
 import { http_base_url } from "@/env/Base";
-import AceEditor from '@/components/common/AceEditor';
+import AceEditor from "@/components/common/AceEditor";
 import { ElMessage } from "element-plus";
 import FileIcons from "file-icons-vue";
 import i18n from "@/locales/i18n";
@@ -91,7 +92,7 @@ export default {
 
     // 关闭
     const closeDialog = (done) => {
-      setTimeout(() => {
+      browser.setTimeout(() => {
         reset();
       }, 400);
       DialogVisible.value = false;

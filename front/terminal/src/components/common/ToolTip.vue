@@ -7,7 +7,8 @@
 </template>
 
 <script>
-import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { ref, onMounted, onBeforeUnmount } from "vue";
+import browser from "@/utils/Browser";
 
 export default {
   name: 'ToolTip',
@@ -35,7 +36,7 @@ export default {
 
     // 检查内容是否溢出
     const checkOverflow = () => {
-      setTimeout(() => {
+      browser.setTimeout(() => {
         if(toolTipContentRef.value && toolTipContentRef.value.firstElementChild) {
           isShowTooltip.value = toolTipContentRef.value.firstElementChild.scrollWidth > toolTipContentRef.value.firstElementChild.offsetWidth;
         }

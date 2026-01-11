@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 @Component
 @ServerEndpoint(Constant.API_PREFIX + "/socket/ssh/{ws}")  // 注意不要以'/'结尾
@@ -180,7 +181,7 @@ public class WebSocketServer {
         try(net.schmizz.sshj.connection.channel.direct.Session sshSession = this.sshClient.startSession();
             net.schmizz.sshj.connection.channel.direct.Session.Command command = sshSession.exec("echo -n $(locale charmap)")) {
             String charsetName = IOUtils.readFully(command.getInputStream()).toString();
-            command.join();
+            command.join(Constant.CMD_EXECUTE_TIMEOUT, TimeUnit.SECONDS);
             this.serverCharset = Charset.forName(charsetName);
             this.sshClient.setRemoteCharset(this.serverCharset);
         }
@@ -243,7 +244,7 @@ public class WebSocketServer {
                 SSHClient ssh = SSHUtil.connectHost(envInfo);
                 SFTPClient sftp = ssh.newSFTPClient();
                 sshClientMap.put(this.sshKey, ssh);
-                sftpClientMap.put(sshKey, sftp);
+                sftpClientMap.put(this.sshKey, sftp);
             } catch (Exception e) {
                 LogUtil.logException(this.getClass(), e);
             };

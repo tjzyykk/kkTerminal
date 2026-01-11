@@ -123,16 +123,16 @@
 </template>
 
 <script>
-import { ref } from 'vue';
-import useClipboard from "vue-clipboard3";
-import { ElMessage } from 'element-plus';
-import OptionBlock from './OptionBlock';
-import PrivateKey from './PrivateKey';
-import ToolTip from '@/components/common/ToolTip';
-import { getPureUrl } from '@/utils/Url';
-import { HomeFilled, Paperclip, User, Lock, DocumentCopy, View, Hide, Edit, Finished, Switch, ArrowDown, Key } from '@element-plus/icons-vue';
+import { ref } from "vue";
+import browser from "@/utils/Browser";
+import { ElMessage } from "element-plus";
+import OptionBlock from "./OptionBlock";
+import PrivateKey from "./PrivateKey";
+import ToolTip from "@/components/common/ToolTip";
+import { getPureUrl } from "@/utils/Url";
+import { HomeFilled, Paperclip, User, Lock, DocumentCopy, View, Hide, Edit, Finished, Switch, ArrowDown, Key } from "@element-plus/icons-vue";
 import i18n from "@/locales/i18n";
-import { isIP, isFQDN } from '@/utils/IP';
+import { isIP, isFQDN } from "@/utils/IP";
 
 export default {
   name: 'ConnectSetting',
@@ -271,15 +271,12 @@ export default {
     const confirm = () => {
       if(!verifyParams()) return;
       if(isNewWindow.value && (setInfo.value.option && setInfo.value.option.length > 0)) {
-        window.open(getPureUrl() + '?option=' + setInfo.value.option, '_blank');
+        browser.open(getPureUrl() + '?option=' + setInfo.value.option, '_blank');
         return;
       }
       context.emit('callback',setInfo.value);
       closeDialog();
     };
-
-    // 拷贝
-    const { toClipboard } = useClipboard();
 
     // 复制
     const doCopy = async (content) => {
@@ -293,7 +290,7 @@ export default {
         });
         return;
       }
-      await toClipboard(content);
+      await browser.navigator.clipboard.writeText(content);
       ElMessage({
         message: i18n.global.t('复制成功'),
         type: 'success',
@@ -327,7 +324,7 @@ export default {
     const closeDialog = (done) => {
       if(optionBlockRef.value && optionBlockRef.value.DialogVisible) optionBlockRef.value.closeDialog();
       if(privateKeyRef.value && privateKeyRef.value.DialogVisible) privateKeyRef.value.closeDialog();
-      setTimeout(() => {
+      browser.setTimeout(() => {
         reset();
       }, 400);
       DialogVisible.value = false;

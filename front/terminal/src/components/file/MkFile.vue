@@ -35,10 +35,10 @@
 </template>
 
 <script>
-import { ref } from 'vue';
+import browser from "@/utils/Browser";
+import { ref } from "vue";
 import i18n from "@/locales/i18n";
-// 引入文件图标组件
-import FileIcons from 'file-icons-vue';
+import FileIcons from "file-icons-vue";
 
 export default {
   name: 'MkFile',
@@ -81,7 +81,7 @@ export default {
 
     // 关闭
     const closeDialog = (done) => {
-      setTimeout(() => {
+      browser.setTimeout(() => {
         reset();
       }, 400);
       DialogVisible.value = false;

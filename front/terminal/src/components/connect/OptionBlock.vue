@@ -42,12 +42,13 @@
 </template>
 
 <script>
-import { ref } from 'vue';
-import { CircleClose } from '@element-plus/icons-vue';
-import { ElMessage } from 'element-plus';
-import { deleteDialog } from '@/components/common/DeleteDialog';
-import NoData from '@/components/common/NoData';
-import FileIcons from 'file-icons-vue';
+import { ref } from "vue";
+import browser from "@/utils/Browser";
+import { CircleClose } from "@element-plus/icons-vue";
+import { ElMessage } from "element-plus";
+import { deleteDialog } from "@/components/common/DeleteDialog";
+import NoData from "@/components/common/NoData";
+import FileIcons from "file-icons-vue";
 import i18n from "@/locales/i18n";
 
 export default {
@@ -97,7 +98,7 @@ export default {
 
     // 关闭
     const closeDialog = (done) => {
-      setTimeout(() => {
+      browser.setTimeout(() => {
         reset();
       }, 400);
       DialogVisible.value = false;

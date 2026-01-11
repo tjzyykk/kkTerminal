@@ -1,6 +1,7 @@
 import $ from "jquery";
-import { secretKeyGetter, aesDecrypt } from '@/utils/Encrypt';
-import { ElMessage } from 'element-plus';
+import browser from "@/utils/Browser";
+import { secretKeyGetter, aesDecrypt } from "@/utils/Encrypt";
+import { ElMessage } from "element-plus";
 import i18n from "@/locales/i18n";
 
 let cookie = null;
@@ -34,8 +35,8 @@ export const setupAjax = () => {
                     grouping: true,
                     repeatNum: Number.MIN_SAFE_INTEGER,
                 });
-                setTimeout(() => {
-                    window.location.reload();
+                browser.setTimeout(() => {
+                    browser.location.reload();
                 }, 1000);
                 return false;
             },

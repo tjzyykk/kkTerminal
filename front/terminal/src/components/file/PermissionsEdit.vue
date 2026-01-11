@@ -47,11 +47,10 @@
 </template>
 
 <script>
-import { ref } from 'vue';
-import { getPermissionInfo } from '@/components/calc/CalcPriority';
-
-// 引入文件图标组件
-import FileIcons from 'file-icons-vue';
+import browser from "@/utils/Browser";
+import { ref } from "vue";
+import { getPermissionInfo } from "@/components/calc/CalcPriority";
+import FileIcons from "file-icons-vue";
 
 export default {
   name: 'PermissionsEdit',
@@ -113,7 +112,7 @@ export default {
 
     // 关闭
     const closeDialog = (done) => {
-      setTimeout(() => {
+      browser.setTimeout(() => {
         reset();
       }, 400);
       DialogVisible.value = false;

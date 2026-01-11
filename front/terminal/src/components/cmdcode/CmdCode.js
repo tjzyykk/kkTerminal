@@ -1,8 +1,8 @@
-import { aesEncrypt, aesDecrypt } from '@/utils/Encrypt';
+import browser from "@/utils/Browser";
+import { aesEncrypt, aesDecrypt } from "@/utils/Encrypt";
 import { localStore, sessionStore } from "@/env/Store";
-import { localStoreUtil } from "@/utils/Cloud";
-import { calcPriority } from '@/components/calc/CalcPriority';
-import { toRaw } from 'vue';
+import { calcPriority } from "@/components/calc/CalcPriority";
+import { toRaw } from "vue";
 import i18n from "@/locales/i18n";
 
 const storageLocalKey = localStore['cmdcode-vars'];
@@ -14,32 +14,32 @@ export const FuncCmdCode = {
         desc: i18n.global.k('重启终端'),
         execFlow(context) {
             context.proxy.doSettings(3);
-        }
+        },
     },
     'FL': {
         desc: i18n.global.k('刷新页面'),
         execFlow() {
-            window.location.reload();
-        }
+            browser.location.reload();
+        },
     },
     'FE': {
         desc: i18n.global.k('用户退出登录'),
         execFlow(context) {
             if(context.proxy.socket) context.proxy.socket.close(3131);
-        }
+        },
     },
     'FO': {
         desc: i18n.global.k('新建终端窗口'),
         execFlow() {
             const _url = window.location.href;
-            window.open(_url, '_blank');
-        }
+            browser.open(_url, '_blank');
+        },
     },
     'FC': {
         desc: i18n.global.k('关闭终端窗口'),
         execFlow() {
-            window.close();
-        }
+            browser.close();
+        },
     },
 };
 
@@ -49,52 +49,52 @@ export const SysCmdCode = {
         desc: i18n.global.k('连接设置'),
         execFlow(context) {
             context.proxy.doSettings(1);
-        }
+        },
     },
     'SP': {
         desc: i18n.global.k('偏好设置'),
         execFlow(context) {
             context.proxy.doSettings(2);
-        }
+        },
     },
     'SF': {
         desc: i18n.global.k('文件管理'),
         execFlow(context) {
             context.proxy.doSettings(4);
-        }
+        },
     },
     'SAC': {
         desc: i18n.global.k('高级-协作'),
         execFlow(context) {
             context.proxy.doSettings(6);
-        }
+        },
     },
     'SAM': {
         desc: i18n.global.k('高级-监控'),
         execFlow(context) {
             context.proxy.doSettings(7);
-        }
+        },
     },
     'SAD': {
         desc: i18n.global.k('高级-Docker'),
         execFlow(context) {
             context.proxy.doSettings(8);
-        }
+        },
     },
     'SCCC': {
         desc: i18n.global.k('命令代码中心'),
         execFlow(context) {
             context.proxy.cmdCodeCenterRef.DialogVisible = true;
-        }
+        },
     },
     'SCCW': {
         desc: i18n.global.k('命令代码工作流'),
         execFlow(context) {
-            setTimeout(() => {
+            browser.setTimeout(() => {
                 context.proxy.cmdCodeWorkflowRef.initText();
             }, 1);
             context.proxy.cmdCodeWorkflowRef.DialogVisible = true;
-        }
+        },
     },
 };
 
@@ -152,37 +152,37 @@ export const UserCmdCodeExecutor = {
     // 变量
     var: {
         session(key, value) {
-            if(value) sessionStorage.setItem(storageSessionPrefix + key, JSON.stringify(value));
+            if(value) browser.sessionStorage.setItem(storageSessionPrefix + key, JSON.stringify(value));
             else {
-                if(sessionStorage.getItem(storageSessionPrefix + key)) return JSON.parse(sessionStorage.getItem(storageSessionPrefix + key));
+                if(browser.sessionStorage.getItem(storageSessionPrefix + key)) return JSON.parse(browser.sessionStorage.getItem(storageSessionPrefix + key));
                 else return null;
             }
         },
         local(key, value) {
             let cmdCodeLocalVars = {};
-            if(localStoreUtil.getItem(storageLocalKey)) {
-                cmdCodeLocalVars = JSON.parse(aesDecrypt(localStoreUtil.getItem(storageLocalKey)));
+            if(browser.localStorage.getItem(storageLocalKey)) {
+                cmdCodeLocalVars = JSON.parse(aesDecrypt(browser.localStorage.getItem(storageLocalKey)));
             }
             if(value) {
                 cmdCodeLocalVars[key] = value;
-                localStoreUtil.setItem(storageLocalKey, aesEncrypt(JSON.stringify(cmdCodeLocalVars)));
+                browser.localStorage.setItem(storageLocalKey, aesEncrypt(JSON.stringify(cmdCodeLocalVars)));
             }
             else return cmdCodeLocalVars[key];
         },
         clean() {
             if(arguments.length === 0) {
-                localStoreUtil.removeItem(storageLocalKey);
+                browser.localStorage.removeItem(storageLocalKey);
                 return;
             }
             let cmdCodeLocalVars = {};
-            if(localStoreUtil.getItem(storageLocalKey)) {
-                cmdCodeLocalVars = JSON.parse(aesDecrypt(localStoreUtil.getItem(storageLocalKey)));
+            if(browser.localStorage.getItem(storageLocalKey)) {
+                cmdCodeLocalVars = JSON.parse(aesDecrypt(browser.localStorage.getItem(storageLocalKey)));
             }
             for (let i = 0; i < arguments.length; i++) {
                 delete cmdCodeLocalVars[arguments[i]];
             }
-            localStoreUtil.setItem(storageLocalKey, aesEncrypt(JSON.stringify(cmdCodeLocalVars)));
-        }
+            browser.localStorage.setItem(storageLocalKey, aesEncrypt(JSON.stringify(cmdCodeLocalVars)));
+        },
     },
     // 写入后等待
     async write(content, time = 200) {
@@ -191,7 +191,7 @@ export const UserCmdCodeExecutor = {
         else if(!content.endsWith('\n') && !content.endsWith('\r')) content += '\n';
         UserCmdCodeHelper.cnt = UserCmdCodeHelper.outArray.length;
         UserCmdCodeHelper.writeNoAwait(content, true);
-        await new Promise(resolve => setTimeout(resolve, Math.max(200, time)));
+        await new Promise(resolve => browser.setTimeout(resolve, Math.max(200, time)));
         return this.read();
     },
     // 读取输出
@@ -266,7 +266,7 @@ const filterRN = (arr) => {
     return ret;
 };
 // 过滤 ANSI 等终端字符
-import stripAnsi from 'strip-ansi';
+import stripAnsi from "strip-ansi";
 const filterANSI = (str) => {
     // eslint-disable-next-line
     return stripAnsi(str).replace(/[\x00-\x1F\x7F]/g, '');
@@ -420,7 +420,7 @@ export const userCmdCodeExecutorCompleter = {
             meta: "kkTerminal",
             description: "show Command Code display",
             score: 1000,
-        }
+        },
     ];
 
     callback(null, userCmdCodeExecutorCompletions.map((completion) => {

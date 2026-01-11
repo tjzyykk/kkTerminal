@@ -1,4 +1,4 @@
-import iconv from 'iconv-lite';
+import iconv from "iconv-lite";
 
 export const encodeStrToArray = (text, encoding) => {
   return iconv.encode(text, encoding);

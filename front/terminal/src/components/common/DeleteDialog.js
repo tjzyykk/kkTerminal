@@ -1,5 +1,5 @@
-import { ElMessageBox } from 'element-plus';
-import { QuestionFilled } from '@element-plus/icons-vue';
+import { ElMessageBox } from "element-plus";
+import { QuestionFilled } from "@element-plus/icons-vue";
 import i18n from "@/locales/i18n";
 
 export const deleteDialog = (title,content,callback) => {

@@ -311,11 +311,11 @@ import NoData from "@/components/common/NoData";
 import { computed, ref } from "vue";
 import { request } from "@/utils/Request";
 import { http_base_url } from "@/env/Base";
-import { ArrowDown, ArrowLeft, Search, Document, Operation, Refresh, TopRight } from '@element-plus/icons-vue';
+import { ArrowDown, ArrowLeft, Search, Document, Operation, Refresh, TopRight } from "@element-plus/icons-vue";
 import i18n from "@/locales/i18n";
 import { ElMessage } from "element-plus";
 import { deleteDialog } from "@/components/common/DeleteDialog";
-import useClipboard from "vue-clipboard3";
+import browser from "@/utils/Browser";
 import { dockerAppTypes, dockerAppStore } from "./DockerAppStore";
 import { generateRandomString } from "@/utils/String";
 
@@ -334,8 +334,6 @@ export default {
   },
   props: ['sshKey', 'advance'],
   setup(props, context) {
-    // 拷贝
-    const { toClipboard } = useClipboard();
 
     // 控制Dialog显示
     const DialogVisible = ref(false);
@@ -573,7 +571,7 @@ export default {
     // 复制表格数据
     const tableDataCopy = async (row, column) => {
       if(column.property === 'createTime' || !row[column.property]) return;
-      await toClipboard(row[column.property]);
+      await browser.navigator.clipboard.writeText(row[column.property]);
       ElMessage({
         message: i18n.global.t('复制成功'),
         type: 'success',
@@ -665,7 +663,7 @@ export default {
     // 关闭
     const closeDialog = (done) => {
       if(dockerContainerViewerRef.value) dockerContainerViewerRef.value.closeDialog();
-      setTimeout(() => {
+      browser.setTimeout(() => {
         reset();
       }, 400);
       DialogVisible.value = false;
@@ -674,7 +672,7 @@ export default {
     // 深度关闭
     const deepCloseDialog = (done) => {
       if(dockerContainerViewerRef.value) dockerContainerViewerRef.value.closeDialog();
-      setTimeout(() => {
+      browser.setTimeout(() => {
         reset(true);
       }, 400);
       DialogVisible.value = false;

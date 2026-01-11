@@ -131,19 +131,19 @@
 </template>
 
 <script>
-import { ref } from 'vue';
-import { ElMessage } from 'element-plus';
+import browser from "@/utils/Browser";
+import { ref } from "vue";
+import { ElMessage } from "element-plus";
 import { FuncCmdCode, SysCmdCode, CmdCodeStatusEnum } from "@/components/cmdcode/CmdCode";
 import ToolTip from "@/components/common/ToolTip";
-import NoData from '@/components/common/NoData';
-import { ArrowRight, ArrowLeft, Edit, View, Finished, Delete } from '@element-plus/icons-vue';
-import AceEditor from '@/components/common/AceEditor';
-import { aesDecrypt } from '@/utils/Encrypt';
-import CmdCodeStatus from './CmdCodeStatus';
-import { deleteDialog } from '@/components/common/DeleteDialog';
+import NoData from "@/components/common/NoData";
+import { ArrowRight, ArrowLeft, Edit, View, Finished, Delete } from "@element-plus/icons-vue";
+import AceEditor from "@/components/common/AceEditor";
+import { aesDecrypt } from "@/utils/Encrypt";
+import CmdCodeStatus from "./CmdCodeStatus";
+import { deleteDialog } from "@/components/common/DeleteDialog";
 import i18n from "@/locales/i18n";
 import { localStore } from "@/env/Store";
-import { localStoreUtil } from "@/utils/Cloud";
 
 export default {
   name: 'CmdCodeCenter',
@@ -172,7 +172,7 @@ export default {
     const gotoWorkflow = (cmdcode) => {
       currentCmdCode.value = cmdcode;
       mode.value = false;
-      setTimeout(() => {
+      browser.setTimeout(() => {
         initCmdCodeEditor(true);
       }, 1);
     };
@@ -187,7 +187,7 @@ export default {
     const userCmdCodeEditorRef = ref();
     const initCmdCodeEditor = (mode) => {
       userCmdCodeEditorRef.value.setLanguage('kk.js');
-      userCmdCodeEditorRef.value.setValue(JSON.parse(aesDecrypt(localStoreUtil.getItem(localStore['cmdcodes'])))[currentCmdCode.value].workflow || '');
+      userCmdCodeEditorRef.value.setValue(JSON.parse(aesDecrypt(browser.localStorage.getItem(localStore['cmdcodes'])))[currentCmdCode.value].workflow || '');
       userCmdCodeEditorRef.value.setReadOnly(mode);
       modifyTag.value = '';
     };
@@ -245,7 +245,7 @@ export default {
 
     // 关闭
     const closeDialog = (done) => {
-      setTimeout(() => {
+      browser.setTimeout(() => {
         reset();
       }, 400);
       DialogVisible.value = false;

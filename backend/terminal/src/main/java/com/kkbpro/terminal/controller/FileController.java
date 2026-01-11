@@ -130,8 +130,7 @@ public class FileController {
             byte[] buffer = new byte[Constant.BUFFER_SIZE];
             int len;
             while ((len = is.read(buffer)) != -1) {
-                // 逐块传输至前端
-                response.getOutputStream().write(buffer, 0, len);
+                response.getOutputStream().write(buffer, 0, len);   // 流式传输
             }
         }
     }
@@ -174,7 +173,7 @@ public class FileController {
             }
         } catch (SFTPException e) {
             LogUtil.logException(this.getClass(), e);
-            Response.StatusCode statusCode  = e.getStatusCode();
+            Response.StatusCode statusCode = e.getStatusCode();
             if (Response.StatusCode.NO_SUCH_FILE.equals(statusCode)) {
                 return Result.error("目录不存在");
             }
@@ -603,8 +602,8 @@ public class FileController {
                 // 合并文件片
                 FileUtil.fileChunkMerge(folderPath, id, chunks, totalSize);
                 // 上传到服务器
-                SFTPClient sftpFileClient = SSHUtil.getTransSFTPClient(sshKey);
-                sftpFileClient.put(folderPath + "/" + id, path + fileName);
+                SFTPClient sftp = SSHUtil.getTransSFTPClient(sshKey);
+                sftp.put(folderPath + "/" + id, path + fileName);
             } catch (Exception e) {
                 fileTransInfo.setStatus(-1);
                 LogUtil.logException(this.getClass(), e);

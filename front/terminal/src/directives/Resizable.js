@@ -1,6 +1,8 @@
+import browser from "@/utils/Browser";
+
 const getTransformX = (element) => {
     // 获取计算后的样式
-    const style = window.getComputedStyle(element);
+    const style = browser.getComputedStyle(element);
     // 从样式中获取transform属性
     const transformValue = style.transform;
     if (transformValue === 'none') return 0;
@@ -15,7 +17,7 @@ const getTransformX = (element) => {
  */
 const resizableDirective = {
     updated(el, binding) {
-        setTimeout(() => {
+        browser.setTimeout(() => {
             // 获取必要的DOM元素
             const header = el.querySelector('.el-dialog__header');
             const body = el.querySelector('.el-dialog__body');

@@ -88,13 +88,13 @@
 </template>
 
 <script>
-import { ref } from 'vue';
-import { ElMessage } from 'element-plus';
-import AceEditor from '@/components/common/AceEditor';
-import { CollectionTag, EditPen, Upload, Download, Refresh, Finished, DocumentDelete } from '@element-plus/icons-vue';
+import browser from "@/utils/Browser";
+import { ref } from "vue";
+import { ElMessage } from "element-plus";
+import AceEditor from "@/components/common/AceEditor";
+import { CollectionTag, EditPen, Upload, Download, Refresh, Finished, DocumentDelete } from "@element-plus/icons-vue";
 import i18n from "@/locales/i18n";
 import { localStore } from "@/env/Store";
-import { localStoreUtil } from "@/utils/Cloud";
 
 export default {
   name: 'CmdCodeWorkflow',
@@ -134,7 +134,7 @@ await kkTerminal.write('nohup java -jar ./' + jar + ' > ./out.log &', 1200);`;
 
     // 保存
     const handleSave = (text) => {
-      localStoreUtil.setItem(localStore['cmdcode-draft'], text);
+      browser.localStorage.setItem(localStore['cmdcode-draft'], text);
       ElMessage({
         message: i18n.global.t('保存成功'),
         type: 'success',
@@ -149,8 +149,8 @@ await kkTerminal.write('nohup java -jar ./' + jar + ' > ./out.log &', 1200);`;
       // 工作流仅支持JS语法
       userCmdCodeEditorRef.value.setLanguage('kk.js');
       // 加载Draft
-      if(localStoreUtil.getItem(localStore['cmdcode-draft'])) {
-        userCmdCodeEditorRef.value.setValue(localStoreUtil.getItem(localStore['cmdcode-draft']));
+      if(browser.localStorage.getItem(localStore['cmdcode-draft'])) {
+        userCmdCodeEditorRef.value.setValue(browser.localStorage.getItem(localStore['cmdcode-draft']));
       }
     };
     // 仅有数字字母组成
@@ -250,12 +250,12 @@ await kkTerminal.write('nohup java -jar ./' + jar + ' > ./out.log &', 1200);`;
       switch(type) {
         case 1:
           // 刷新
-          localStoreUtil.removeItem(localStore['cmdcode-draft']);
+          browser.localStorage.removeItem(localStore['cmdcode-draft']);
           setValue(workflowTemplate);
           break;
         case 2:
           // 删除
-          localStoreUtil.removeItem(localStore['cmdcode-draft']);
+          browser.localStorage.removeItem(localStore['cmdcode-draft']);
           setValue('');
           break;
         case 3:
@@ -297,7 +297,7 @@ await kkTerminal.write('nohup java -jar ./' + jar + ' > ./out.log &', 1200);`;
         type: 'success',
         grouping: true,
       });
-      localStoreUtil.removeItem(localStore['cmdcode-draft']);
+      browser.localStorage.removeItem(localStore['cmdcode-draft']);
       closeDialog();
     };
 
@@ -312,7 +312,7 @@ await kkTerminal.write('nohup java -jar ./' + jar + ' > ./out.log &', 1200);`;
 
     // 关闭
     const closeDialog = (done) => {
-      setTimeout(() => {
+      browser.setTimeout(() => {
         reset();
       }, 400);
       DialogVisible.value = false;

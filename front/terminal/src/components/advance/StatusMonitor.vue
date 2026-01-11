@@ -150,15 +150,15 @@
 </template>
 
 <script>
-import { ref, computed } from 'vue';
+import { ref, computed } from "vue";
 import { request } from "@/utils/Request";
-import { ArrowDown, SortUp, SortDown } from '@element-plus/icons-vue';
+import { ArrowDown, SortUp, SortDown } from "@element-plus/icons-vue";
 import { http_base_url } from "@/env/Base";
 import { calcNumber, calcStatus } from "@/components/calc/CalcType";
-import NoData from '@/components/common/NoData';
+import NoData from "@/components/common/NoData";
 import EChart from "@/components/common/EChart";
 import { ElMessage } from "element-plus";
-import useClipboard from "vue-clipboard3";
+import browser from "@/utils/Browser";
 import { calcTime } from "@/components/calc/CalcDate";
 import i18n from "@/locales/i18n";
 
@@ -174,8 +174,6 @@ export default {
   },
   props: ['sshKey', 'advance'],
   setup(props) {
-    // 拷贝
-    const { toClipboard } = useClipboard();
 
     // 控制Dialog显示
     const DialogVisible = ref(false);
@@ -352,10 +350,10 @@ export default {
     const interval = 6000;
     const doMonitor = () => {
       if(timer.value == null) {
-        setTimeout(() => {
+        browser.setTimeout(() => {
           getStatusInfo();
         }, 1);
-        timer.value = setInterval(() => {
+        timer.value = browser.setInterval(() => {
           getStatusInfo();
         }, interval);
       }
@@ -377,7 +375,7 @@ export default {
     // 复制表格数据
     const tableDataCopy = async (row, column) => {
       if(!row[column.property]) return;
-      await toClipboard(row[column.property]);
+      await browser.navigator.clipboard.writeText(row[column.property]);
       ElMessage({
         message: i18n.global.t('复制成功'),
         type: 'success',
@@ -398,7 +396,7 @@ export default {
 
     // 关闭
     const closeDialog = (done) => {
-      setTimeout(() => {
+      browser.setTimeout(() => {
         reset();
       }, 400);
       DialogVisible.value = false;
@@ -406,7 +404,7 @@ export default {
     };
     // 深度关闭
     const deepCloseDialog = (done) => {
-      setTimeout(() => {
+      browser.setTimeout(() => {
         reset(true);
       }, 400);
       stopMonitor();
