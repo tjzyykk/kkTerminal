@@ -2,7 +2,7 @@
   <el-dialog
     v-model="DialogVisible"
     :before-close="closeDialog"
-    :width="320"
+    :width="300"
     :modal="false"
     :title="$t('导入私钥')"
     modal-class="kk-dialog-class"
@@ -27,7 +27,7 @@
       <div class="kk-flex" >
         <div class="form-width" >{{ $t('密码') }}{{ $t('：') }}</div>
         <div style="flex: 1;" >
-          <el-input size="small" v-model="passphrase" type="password" @keydown.enter="confirm" class="w-50 m-2" :placeholder="$t('请输入私钥密码')" >
+          <el-input size="small" v-model="passphrase" type="password" @keydown.enter="confirm" class="w-50 m-2" :placeholder="$t('请输入密码短语')" >
             <template #prefix>
               <el-icon class="el-input__icon" ><Key /></el-icon>
             </template>

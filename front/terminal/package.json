@@ -43,16 +43,7 @@
   "eslintConfig": {
     "root": true,
     "env": {
-      "node": true,
-      "browser": false
-    },
-    "globals": {
-      "document": "readonly",
-      "window": "readonly",
-      "WebSocket": "readonly",
-      "FileReader": "readonly",
-      "ResizeObserver": "readonly",
-      "DOMMatrix": "readonly"
+      "node": true
     },
     "extends": [
       "plugin:vue/vue3-essential",

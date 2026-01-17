@@ -12,7 +12,7 @@
     draggable
   >
     <div class="no-select" >
-      <div v-if="Object.keys(sshOptions).length > 0" class="container" >
+      <div v-if="Object.keys(sshOptions).length > 0" class="container no-scrollbar" >
         <div v-for="(value, key) in sshOptions" :key="key" >
           <div :class="['item-class', (aimOption === key) ? 'item-selected' : '']" @click="aimOption = key" >
             <FileIcons :style="{display: 'flex', alignItems: 'center'}" name="kk.ini" :width="20" :height="20" :isFolder="false" />

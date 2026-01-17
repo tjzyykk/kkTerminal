@@ -149,16 +149,6 @@ export default {
   margin-top: 2px;
 }
 
-/* 隐藏滚动条 */
-.xterm-viewport {
-  scrollbar-width: none !important; /* Firefox */
-  -ms-overflow-style: none !important; /* IE 和 Edge */
-}
-
-.xterm-viewport::-webkit-scrollbar {
-  display: none !important; /* Chrome 和 Safari */
-}
-
 /* 左右拉伸 */
 .resize-handle {
   position: absolute;

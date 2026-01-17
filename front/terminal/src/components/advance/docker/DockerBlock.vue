@@ -28,7 +28,7 @@
             <div style="flex: 1;" ></div>
           </div>
           <div v-else >
-            <div id="docker-appstore" v-if="!deployInfo.isShow" style="height: 240px; overflow-y: scroll;" >
+            <div v-if="!deployInfo.isShow" class="no-scrollbar" style="height: 240px; overflow-y: scroll;" >
               <div class="kk-flex" >
                 <span><img src="@/assets/app_store.svg" alt="appstore" style="height: 30px;" ></span>
                 <div style="margin-left: 15px; font-size: 20px; font-weight: bolder;" >{{ $t('Docker应用商店') }}</div>
@@ -800,15 +800,5 @@ export default {
 
 .form-width {
   width: 140px;
-}
-
-/* 隐藏滚动条 */
-#docker-appstore {
-  scrollbar-width: none !important; /* Firefox */
-  -ms-overflow-style: none !important; /* IE 和 Edge */
-}
-
-#docker-appstore::-webkit-scrollbar {
-  display: none !important; /* Chrome 和 Safari */
 }
 </style>

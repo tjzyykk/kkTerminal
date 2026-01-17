@@ -64,7 +64,7 @@
                       <div>{{ $t('等待中') }}</div>
                     </el-badge>
                   </template>
-                  <div v-if="Object.keys(waitingList).length > 0" class="trans-items" >
+                  <div v-if="Object.keys(waitingList).length > 0" class="trans-items no-scrollbar" >
                     <div v-for="item in waitingList" :key="item.id" class="kk-flex trans-item" >
                       <FileIcons :name="item.name" :width="24" :height="24" :isFolder="item.size === -1" />
                       <div style="margin-left: 15px;" ></div>
@@ -91,7 +91,7 @@
                       <div>{{ $t('正在上传') }}</div>
                     </el-badge>
                   </template>
-                  <div v-if="Object.keys(uploadingList).length > 0" class="trans-items" >
+                  <div v-if="Object.keys(uploadingList).length > 0" class="trans-items no-scrollbar" >
                     <div v-for="item in uploadingList" :key="item.id" class="kk-flex trans-item" >
                       <FileIcons :name="item.name" :width="24" :height="24" :isFolder="item.size === -1" />
                       <div style="margin-left: 15px;" ></div>
@@ -120,7 +120,7 @@
                       <div>{{ $t('正在下载') }}</div>
                     </el-badge>
                   </template>
-                  <div v-if="Object.keys(downloadingList).length > 0" class="trans-items" >
+                  <div v-if="Object.keys(downloadingList).length > 0" class="trans-items no-scrollbar" >
                     <div v-for="item in downloadingList" :key="item.id" class="kk-flex trans-item" >
                       <FileIcons :name="item.name" :width="24" :height="24" :isFolder="item.size === -1" />
                       <div style="margin-left: 15px;" ></div>
@@ -149,7 +149,7 @@
                       <div>{{ $t('已完成') }}</div>
                     </el-badge>
                   </template>
-                  <div v-if="Object.keys(finishedList).length > 0" class="trans-items" >
+                  <div v-if="Object.keys(finishedList).length > 0" class="trans-items no-scrollbar" >
                     <div v-for="item in finishedList" :key="item.id" class="kk-flex trans-item" >
                       <FileIcons :name="item.name" :width="24" :height="24" :isFolder="item.size === -1" />
                       <div style="margin-left: 15px;" ></div>
@@ -492,7 +492,7 @@ export default {
     // 初始化终端
     const terminal = ref();
     let term = null;
-    const isFirst = ref(true);
+    const isInputted = ref(false);
     const initTerminal = () => {
       term = new Terminal({
         convertEol: true,                                     // 设置光标为下一行开头
@@ -723,10 +723,10 @@ export default {
     // 文本消息发送
     const sendMessage = (text, active=false) => {
       if(socket.value) {
-        // 重启后第一次输入
-        if(isFirst.value) {
+        // 第一次输入
+        if(!isInputted.value) {
           termFit();
-          isFirst.value = false;
+          isInputted.value = true;
         }
         // 禁止在执行命令代码工作流的过程中进行人为输入
         if(UserCmdCodeHelper.active === active) {
@@ -772,7 +772,7 @@ export default {
         terminal.value.removeEventListener('click', doClick);
       }
       terminal.value.innerHTML = '';
-      isFirst.value = true;
+      isInputted.value = false;
       loadEnv();
       initTerminal();
       term.open(terminal.value);
@@ -1133,7 +1133,6 @@ export default {
       listenResize();
       // 心跳
       doHeartBeat();
-
     });
 
     onUnmounted(() => {
@@ -1309,13 +1308,6 @@ export default {
 .trans-items {
   height: 256px;
   overflow-y: scroll;
-  scrollbar-width: none !important; /* Firefox */
-  -ms-overflow-style: none !important; /* IE 和 Edge */
-}
-
-/* 隐藏滚动条 */
-.trans-items::-webkit-scrollbar {
-  display: none !important; /* Chrome 和 Safari */
 }
 
 .trans-item {

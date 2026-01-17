@@ -17,7 +17,7 @@
         </div>
       </template>
       <div style="margin-top: -28px;" ></div>
-      <div id="editor-bar" v-show="previewInfo.preview === 'editor'" class="kk-flex ellipsis no-select" style="margin-bottom: 5px; overflow-x: auto; line-height: 22px;" >
+      <div v-show="previewInfo.preview === 'editor'" class="kk-flex ellipsis no-select no-scrollbar" style="margin-bottom: 5px; overflow-x: auto; line-height: 22px;" >
         <div class="kk-flex" >
           <div>{{ $t('编码') }}</div>
           <div style="width: 15px;" >{{ $t('：') }}</div>
@@ -395,15 +395,5 @@ export default {
 .preview {
   width: 100%;
   height: 100%;
-}
-
-/* 隐藏滚动条 */
-#editor-bar {
-  scrollbar-width: none !important; /* Firefox */
-  -ms-overflow-style: none !important; /* Internet Explorer 和 Edge */
-}
-
-#editor-bar::-webkit-scrollbar {
-  display: none !important; /* Chrome 和 Safari */
 }
 </style>

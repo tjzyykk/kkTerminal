@@ -15,7 +15,7 @@
       <div class="no-select" >
         <el-tabs stretch type="border-card" >
           <el-tab-pane :label="$t('功能')" >
-            <div class="pane-body" >
+            <div class="pane-body no-scrollbar" >
               <div class="kk-flex" >
                 <div>{{ $t('以') }}&nbsp;</div>
                 <div class="cmdcode-name" >F</div>
@@ -34,7 +34,7 @@
             </div>
           </el-tab-pane>
           <el-tab-pane :label="$t('系统')" >
-            <div class="pane-body" >
+            <div class="pane-body no-scrollbar" >
               <div class="kk-flex" >
                 <div>{{ $t('以') }}&nbsp;</div>
                 <div class="cmdcode-name" >S</div>
@@ -53,7 +53,7 @@
             </div>
           </el-tab-pane>
           <el-tab-pane :label="$t('用户')" >
-            <div class="pane-body" >
+            <div class="pane-body no-scrollbar" >
               <template v-if="userCmdCodes && Object.keys(userCmdCodes).length > 0" >
                 <template v-if="currentCmdCode && currentCmdCode.length >= 2 && currentCmdCode.length <= 6" >
                   <div class="kk-flex" style="margin-bottom: 10px;" >
@@ -314,12 +314,5 @@ export default {
 .pane-body {
   height: 210px;
   overflow-y: auto;
-  /* 隐藏滚动条 */
-  scrollbar-width: none !important; /* Firefox */
-  -ms-overflow-style: none !important; /* Internet Explorer 和 Edge */
-}
-
-.pane-body::-webkit-scrollbar {
-  display: none !important; /* Chrome 和 Safari */
 }
 </style>
