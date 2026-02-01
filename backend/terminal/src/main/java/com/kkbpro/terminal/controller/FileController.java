@@ -31,6 +31,8 @@ import java.util.*;
 @RequestMapping(Constant.API_PREFIX + "/file")
 public class FileController {
 
+    public static final String transportPath = "/" + "transport" + "/";
+
     /**
      * 下载远程文件
      */
@@ -106,32 +108,6 @@ public class FileController {
             WebSocketServer.removeTransportingFile(sshKey, id);
             // 释放资源
             SSHUtil.closeTransClient(sshKey);
-        }
-    }
-
-
-    /**
-     * 下载本地文件
-     * --方法未使用--
-     */
-    @Log
-    @GetMapping("/download/local")
-    public void downloadLocalFile(HttpServletResponse response, String sshKey, String id, String fileName) throws IOException {
-        String folderPath = FileUtil.folderBasePath + "/" + sshKey + "-" + id;
-        File file = new File(folderPath + "/" + id);
-        // 文件不存在
-        if (!file.exists()) return;
-
-        // 构建 HTTP 响应，触发文件下载
-        response.setHeader("Content-Type", "application/octet-stream");
-        response.setHeader("Content-Disposition", "attachment; filename=" + URLEncoder.encode(fileName, StandardCharsets.UTF_8.name()));
-
-        try(InputStream is = Files.newInputStream(file.toPath())) {
-            byte[] buffer = new byte[Constant.BUFFER_SIZE];
-            int len;
-            while ((len = is.read(buffer)) != -1) {
-                response.getOutputStream().write(buffer, 0, len);   // 流式传输
-            }
         }
     }
 
@@ -550,22 +526,15 @@ public class FileController {
         String id = fileUploadInfo.getId();
         Integer chunk = fileUploadInfo.getChunk();
 
-        String folderPath = FileUtil.folderBasePath + "/" + sshKey + "-" + id;
-        File temporaryFolder = new File(folderPath);
-        // 如果文件夹不存在则创建
-        if (!temporaryFolder.exists()) {
-            temporaryFolder.mkdirs();
-        }
-        File temporaryFile = new File(folderPath + "/" + id + "-" + chunk);
-        // 如果文件存在则删除
-        if (temporaryFile.exists()) {
-            temporaryFile.delete();
-        }
+        String transPath = FileUtil.tempBasePath + transportPath + sshKey;
+        String transFileFolderPath = transPath + "/" + id;
+        String chunkFilePath = transFileFolderPath + "/" + id + "-" + chunk;
+        File chunkFile = FileUtil.prepareFile(chunkFilePath);
         // 写入数据
         try {
-            Files.write(temporaryFile.toPath(), file.getBytes());
+            Files.write(chunkFile.toPath(), file.getBytes());
         } catch (Exception e) {
-            temporaryFile.delete();
+            chunkFile.delete();
             LogUtil.logException(this.getClass(), e);
             return Result.error(FileStateEnum.UPLOAD_ERROR.getState(), "文件片上传失败");
         }
@@ -592,27 +561,31 @@ public class FileController {
         Integer chunks = fileUploadInfo.getChunks();
         Long totalSize = fileUploadInfo.getTotalSize();
 
-        String folderPath = FileUtil.folderBasePath + "/" + sshKey + "-" + id;
-        File temporaryFolder = new File(folderPath);
+        String transPath = FileUtil.tempBasePath + transportPath + sshKey;
+        File transFolder = FileUtil.prepareDirectory(transPath);
+        String transFileFolderPath = transPath + "/" + id;
+        File transFileFolder = FileUtil.prepareDirectory(transFileFolderPath);
+        String transFilePath = transFileFolderPath + "/" + id;
 
         FileTransInfo fileTransInfo = new FileTransInfo(id, path, fileName, totalSize, 1, 0);
         WebSocketServer.putTransportingFile(sshKey, id, fileTransInfo);
         new Thread(() -> {
             try {
                 // 合并文件片
-                FileUtil.fileChunkMerge(folderPath, id, chunks, totalSize);
+                FileUtil.mergeFileChunks(transFileFolderPath, id, chunks, totalSize);
                 // 上传到服务器
                 SFTPClient sftp = SSHUtil.getTransSFTPClient(sshKey);
-                sftp.put(folderPath + "/" + id, path + fileName);
+                sftp.put(transFilePath, path + fileName);
             } catch (Exception e) {
                 fileTransInfo.setStatus(-1);
                 LogUtil.logException(this.getClass(), e);
             } finally {
                 WebSocketServer.removeTransportingFile(sshKey, id);
-                // 删除临时文件夹
-                FileUtil.fileDelete(temporaryFolder);
                 // 释放资源
-                SSHUtil.closeTransClient(sshKey);
+                Boolean isClosed = SSHUtil.closeTransClient(sshKey);
+                // 删除传输文件夹
+                FileUtil.forceDeleteFolder(transFileFolder);
+                if (isClosed) FileUtil.forceDeleteFolder(transFolder);
             }
         }).start();
 

@@ -21,6 +21,8 @@ import java.util.concurrent.TimeUnit;
 
 public class SSHUtil {
 
+    private static final String keyProvidersPath = "/" + "keyProviders" + "/";
+
     // 服务器编码集
     public static final ThreadLocal<String> charset = new ThreadLocal<>();
 
@@ -46,12 +48,8 @@ public class SSHUtil {
             if (authType != 1) sshClient.authPassword(username, password);          // 使用用户名和密码进行身份验证
             else {
                 // 创建本地私钥文件
-                String keyPath = FileUtil.folderBasePath + "/" + "keyProviders" + "/" + UUID.randomUUID();
-                keyFile = new File(keyPath);
-                // 确保父目录存在
-                if (!keyFile.getParentFile().exists()) {
-                    keyFile.getParentFile().mkdirs();
-                }
+                String keyPath = FileUtil.tempBasePath + keyProvidersPath + UUID.randomUUID();
+                keyFile = FileUtil.prepareFile(keyPath);
                 // 写入私钥内容
                 Files.write(Paths.get(keyFile.getAbsolutePath()), privateKey.getContent().getBytes());
                 // 加载私钥
@@ -61,7 +59,7 @@ public class SSHUtil {
             }
         } finally {
             // 删除本地私钥文件
-            if (keyFile != null) FileUtil.fileDelete(keyFile);
+            if (keyFile != null) keyFile.delete();
         }
 
         return sshClient;
@@ -133,11 +131,13 @@ public class SSHUtil {
     /**
      * 关闭传输资源
      */
-    public static void closeTransClient(String sshKey) {
+    public static Boolean closeTransClient(String sshKey) {
         // WebSocket连接已断开
         if (WebSocketServer.webSocketServerMap.get(sshKey) == null || WebSocketServer.webSocketServerMap.get(sshKey).getSessionSocket() == null) {
-            WebSocketServer.closeTransClient(sshKey);
+            return WebSocketServer.closeTransClient(sshKey);
         }
+
+        return false;
     }
 
 }

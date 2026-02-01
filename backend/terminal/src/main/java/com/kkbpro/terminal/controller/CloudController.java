@@ -5,6 +5,7 @@ import com.kkbpro.terminal.constant.Constant;
 import com.kkbpro.terminal.enums.FileStateEnum;
 import com.kkbpro.terminal.enums.ResultCodeEnum;
 import com.kkbpro.terminal.result.Result;
+import com.kkbpro.terminal.utils.FileUtil;
 import com.kkbpro.terminal.utils.LogUtil;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,7 +14,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -41,20 +41,15 @@ public class CloudController {
     @Log
     @PostMapping("/upload")
     public Result uploadCloud(String user, String type, String name, MultipartFile file) throws IOException {
-        String folderPath = cloudBasePath + "/" + user;
-        File folder = new File(folderPath);
-        // 如果文件夹不存在则创建
-        if (!folder.exists()) {
-            folder.mkdirs();
-        }
-        if (folder.listFiles().length > maxCount && countType.equals(type))
+        String userFolderPath = cloudBasePath + "/" + user;
+        File userFolder = FileUtil.prepareDirectory(userFolderPath);
+        File[] userFiles = userFolder.listFiles();
+        // 限制录像文件数量
+        if (userFiles != null && userFiles.length > maxCount && countType.equals(type)) {
             return Result.error(ResultCodeEnum.CLOUD_COUNT_ERROR.getState(),"云端文件过多");
-        File aimFile = new File(folderPath + "/" + type + name);
-        // 如果文件存在则删除
-        if (aimFile.exists()) {
-            aimFile.delete();
         }
-        file.transferTo(aimFile);
+        File targetFile = FileUtil.prepareFile(userFolderPath + "/" + type + name);
+        file.transferTo(targetFile);
 
         return Result.success("云端上传成功");
     }
@@ -64,13 +59,15 @@ public class CloudController {
      */
     @Log
     @GetMapping("/download")
-    public Result downloadCloud(HttpServletResponse response, String user, String fileName) throws IOException {
-        String folderPath = cloudBasePath + "/" + user;
-        File file = new File(folderPath + "/" + fileName);
+    public Result downloadCloud(String user, String fileName) {
+        String userFolderPath = cloudBasePath + "/" + user;
+        File targetFile = FileUtil.getFile(userFolderPath + "/" + fileName);
         // 文件不存在
-        if (!file.exists()) return Result.error(FileStateEnum.FILE_NOT_EXIST.getState(), "文件不存在");
+        if (targetFile == null) {
+            return Result.error(FileStateEnum.FILE_NOT_EXIST.getState(), "文件不存在");
+        }
         StringBuilder content = new StringBuilder();
-        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+        try (BufferedReader br = new BufferedReader(new FileReader(targetFile))) {
             String line;
             while ((line = br.readLine()) != null) {
                 content.append(line);
@@ -87,9 +84,8 @@ public class CloudController {
      */
     @Scheduled(cron = "0 0 0 */1 * ?")
     protected void clean() {
-        File cloudBaseFolder = new File(cloudBasePath);
-        if (!cloudBaseFolder.exists()) return;
-        File[] userFolders = cloudBaseFolder.listFiles();
+        File cloudFolder = FileUtil.prepareDirectory(cloudBasePath);
+        File[] userFolders = cloudFolder.listFiles();
         if (userFolders == null) return;
         for (File userFolder : userFolders) {
             if (userFolder.isDirectory()) {
@@ -112,7 +108,7 @@ public class CloudController {
                             }
                         }
                     }
-                    else userFile.delete();
+                    else FileUtil.forceDeleteFolder(userFile);
                 }
             }
             else userFolder.delete();

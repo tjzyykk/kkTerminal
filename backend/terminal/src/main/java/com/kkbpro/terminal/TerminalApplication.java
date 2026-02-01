@@ -29,18 +29,23 @@ public class TerminalApplication {
         }
     }
 
+    public static void cleanTempData() {
+        // 清除临时数据
+        File tempFolder = FileUtil.getDirectory(FileUtil.tempBasePath);
+        if (tempFolder != null) {
+            FileUtil.forceDeleteFolder(tempFolder);
+        }
+    }
+
     @PreDestroy
-    public void cleanData() {
-        // 清除文件数据残留
-        File data = new File(FileUtil.folderBasePath);
-        if (data.exists()) FileUtil.fileDelete(data);
+    public void preDestroy() {
+        cleanTempData();
     }
 
     public static void main(String[] args) {
-        // 清除文件数据残留
-        File data = new File(FileUtil.folderBasePath);
-        if (data.exists()) FileUtil.fileDelete(data);
-        data.mkdirs();
+        // 重置临时数据
+        cleanTempData();
+        FileUtil.prepareDirectory(FileUtil.tempBasePath);
         // 设置服务器OS
         setServerOS();
         // 启动后端

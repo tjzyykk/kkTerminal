@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.github.lalyos.jfiglet.FigletFont;
 import com.kkbpro.terminal.config.AppConfig;
 import com.kkbpro.terminal.constant.Constant;
+import com.kkbpro.terminal.controller.FileController;
 import com.kkbpro.terminal.enums.ResultStatusEnum;
 import com.kkbpro.terminal.enums.SocketMessageEnum;
 import com.kkbpro.terminal.enums.SocketSendEnum;
@@ -238,7 +239,7 @@ public class WebSocketServer {
             }
         });
         this.shellOutThread.start();
-        // 建立传输SSH连接（异步）
+        // 异步建立传输SSH连接
         new Thread(() -> {
             try {
                 SSHClient ssh = SSHUtil.connectHost(envInfo);
@@ -279,7 +280,7 @@ public class WebSocketServer {
         IOUtils.closeQuietly(this.shellOutputStream, this.shellInputStream, this.shell,
                 this.sftpClient, this.sshClient, this.sessionSocket);
         webSocketServerMap.remove(this.sshKey);
-        closeTransClient(this.sshKey);
+        Boolean isClosed = closeTransClient(this.sshKey);
         // 删除临时文件
         new Thread(() -> {
             // 延时5s执行
@@ -288,31 +289,41 @@ public class WebSocketServer {
             } catch (Exception e) {
                 LogUtil.logException(this.getClass(), e);
             }
-            File fileBaseFolder = new File(FileUtil.folderBasePath);
-            File[] files = fileBaseFolder.listFiles();
-            if (files == null) return;
-            for (File file : files) {
-                // 判断是否是本次ssh对应的临时文件夹
-                if (file.isDirectory() && file.getName().startsWith(this.sshKey)) {
-                    FileTransInfo fileTransInfo = getTransportingFile(this.sshKey, file.getName().substring(this.sshKey.length() + 1));
+            String transPath = FileUtil.tempBasePath + FileController.transportPath + sshKey;
+            File transFolder = FileUtil.getDirectory(transPath);
+            if (transFolder == null) return;
+            if (isClosed) {
+                FileUtil.forceDeleteFolder(transFolder);
+                return;
+            }
+            File[] transFilesFolders = transFolder.listFiles();
+            if (transFilesFolders == null) return;
+            for (File transFileFolder : transFilesFolders) {
+                if (transFileFolder.isDirectory()) {
+                    FileTransInfo fileTransInfo = getTransportingFile(this.sshKey, transFileFolder.getName());
                     // 忽略上传中/下载中的文件
                     if (fileTransInfo != null && fileTransInfo.getIndex() != null
-                            && (fileTransInfo.getIndex().equals(1) || fileTransInfo.getIndex().equals(2)))
+                            && (fileTransInfo.getIndex().equals(1) || fileTransInfo.getIndex().equals(2))) {
                         continue;
-                    FileUtil.fileDelete(file);
+                    }
+                    FileUtil.forceDeleteFolder(transFileFolder);
                 }
+                else transFileFolder.delete();
             }
         }).start();
     }
     // 关闭传输资源
-    public static void closeTransClient(String sshKey) {
-        // 当前没有仍在传输的文件
+    public static Boolean closeTransClient(String sshKey) {
+        // 当前没有正在传输的文件
         if (fileTransportingMap.get(sshKey) == null || fileTransportingMap.get(sshKey).isEmpty()) {
             fileTransportingMap.remove(sshKey);
             SFTPClient sftp = sftpClientMap.remove(sshKey);
             SSHClient ssh = sshClientMap.remove(sshKey);
             IOUtils.closeQuietly(sftp, ssh);
+            return true;
         }
+
+        return false;
     }
 
     // 从Client接收消息

@@ -6,87 +6,129 @@ import com.kkbpro.terminal.result.Result;
 
 import java.io.*;
 import java.nio.file.Files;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class FileUtil {
 
-    public static final String folderBasePath = System.getProperty("user.dir") + "/" + "file";
+    public static final String tempBasePath = System.getProperty("user.dir") + "/" + "temp";
 
     /**
-     * 文件片合并
+     * 获取文件
      */
-    public static void fileChunkMerge(String folderPath, String fileName, Integer chunks, Long totalSize) {
-        File folder = new File(folderPath);
-        // 合并的文件
-        File finalFile = new File(folderPath + "/" + fileName);
-        // 获取暂存切片文件的文件夹中的所有文件
-        File[] files = folder.listFiles();
-        if (files != null) {
-            try (OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(finalFile, true))) {
-                List<File> list = new ArrayList<>();
-                for (File file : files) {
-                    // 判断是否是文件对应的文件片
-                    if (isFileChunk(file.getName(),chunks,fileName)) {
-                        list.add(file);
-                    }
+    public static File getFile(String fullPath) {
+        File file = new File(fullPath);
+        return file.exists() ? file : null;
+    }
+
+    /**
+     * 获取文件夹
+     */
+    public static File getDirectory(String path) {
+        return getFile(path);
+    }
+
+    /**
+     * 准备文件
+     */
+    public static File prepareFile(String fullPath) {
+        File file = new File(fullPath);
+        // 如果文件存在则删除
+        if (file.exists()) {
+            file.delete();
+        }
+        // 确保父目录存在
+        else if (!file.getParentFile().exists()) {
+            file.getParentFile().mkdirs();
+        }
+
+        return file;
+    }
+
+    /**
+     * 准备文件夹
+     */
+    public static File prepareDirectory(String path) {
+        File directory = new File(path);
+        // 如果文件夹不存在则创建
+        if (!directory.exists()) {
+            directory.mkdirs();
+        }
+
+        return directory;
+    }
+
+    /**
+     * 文件夹强制(递归)删除
+     */
+    public static void forceDeleteFolder(File parentItem) {
+        if (parentItem.isDirectory()) {
+            File[] subItems = parentItem.listFiles();
+            if (subItems != null) {
+                for (File subItem : subItems) {
+                    forceDeleteFolder(subItem);
                 }
-                // 如果服务器上的切片数量和前端给的数量不匹配
-                if (chunks != list.size()) {
-                    throw new MyException(Result.error(FileStateEnum.UPLOAD_CHUNK_LOST.getState(), "文件片缺失"));
-                }
-                // 根据切片文件的下标进行排序
-                List<File> fileListCollect = list.parallelStream().sorted(((file1, file2) -> {
-                    Integer chunk1 = getFileChunkIndex(file1.getName());
-                    Integer chunk2 = getFileChunkIndex(file2.getName());
-                    return chunk1 - chunk2;
-                })).collect(Collectors.toList());
-                // 根据排序的顺序依次将文件合并到新的文件中
-                for (File file : fileListCollect) {
-                    try (InputStream inputStream = new BufferedInputStream(Files.newInputStream(file.toPath()))) {
-                        int len;
-                        byte[] bytes = new byte[4 * 1024 * 1024];
-                        while ((len = inputStream.read(bytes)) != -1) {
-                            outputStream.write(bytes, 0, len);
-                        }
-                        outputStream.flush();
-                    }
-                }
-            } catch (Exception e) {
-                LogUtil.logException(FileUtil.class, e);
-                throw new MyException(Result.error(FileStateEnum.CHUNK_MERGE_ERROR.getState(), "文件片合并失败"));
             }
         }
-        // 产生的文件大小和前端一开始上传的文件不一致
-        if (finalFile.length() != totalSize) {
+        parentItem.delete();
+    }
+
+    /**
+     * 合并文件片
+     */
+    public static void mergeFileChunks(String folderPath, String fileName, Integer chunks, Long totalSize) {
+        File folder = FileUtil.getDirectory(folderPath);
+        // 合并后的文件
+        File mergedFile = FileUtil.prepareFile(folderPath + "/" + fileName);
+        // 获取所有文件片
+        File[] chunkFiles = folder.listFiles();
+        if (chunkFiles == null) {
+            throw new MyException(Result.error(FileStateEnum.CHUNK_MERGE_ERROR.getState(), "文件片合并失败"));
+        }
+        try (OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(mergedFile, true))) {
+            List<File> filteredChunkFiles = Arrays.stream(chunkFiles)
+                    .filter(chunkFile -> isChunkFile(chunkFile.getName(), chunks, fileName))
+                    .collect(Collectors.toList());
+            // 文件片数量不匹配
+            if (chunks != filteredChunkFiles.size()) {
+                throw new MyException(Result.error(FileStateEnum.UPLOAD_CHUNK_LOST.getState(), "文件片缺失"));
+            }
+            // 根据文件片号排序
+            List<File> sortedChunkFiles = filteredChunkFiles.parallelStream().sorted(((file1, file2) -> {
+                Integer chunk1 = getChunkFileIndex(file1.getName());
+                Integer chunk2 = getChunkFileIndex(file2.getName());
+                return chunk1 - chunk2;
+            })).collect(Collectors.toList());
+            // 依次将文件片合并到新文件
+            for (File chunkFile : sortedChunkFiles) {
+                try (InputStream inputStream = new BufferedInputStream(Files.newInputStream(chunkFile.toPath()))) {
+                    int len;
+                    byte[] bytes = new byte[4 * 1024 * 1024];
+                    while ((len = inputStream.read(bytes)) != -1) {
+                        outputStream.write(bytes, 0, len);
+                    }
+                    outputStream.flush();
+                }
+            }
+        } catch (Exception e) {
+            LogUtil.logException(FileUtil.class, e);
+            throw new MyException(Result.error(FileStateEnum.CHUNK_MERGE_ERROR.getState(), "文件片合并失败"));
+        }
+
+        // 合并文件大小不一致
+        if (mergedFile.length() != totalSize) {
             throw new MyException(Result.error(FileStateEnum.UPLOAD_SIZE_DIFF.getState(), "上传文件大小不一致"));
         }
     }
 
     /**
-     * 删除文件/文件夹
-     */
-    public static void fileDelete(File item) {
-        if (item.isDirectory()) {
-            File[] files = item.listFiles();
-            if (files != null) {
-                for (File file : files) {
-                    fileDelete(file);
-                }
-            }
-        }
-        item.delete();
-    }
-
-
-    /**
      * 判断分片文件名
      */
-    private static Boolean isFileChunk(String chunkFileName, Integer chunks, String originFileName) {
+    private static Boolean isChunkFile(String chunkFileName, Integer chunks, String originFileName) {
         int index = chunkFileName.lastIndexOf("-");
         if (index != -1) {
-            String fileName = chunkFileName.substring(0,index);
+            String fileName = chunkFileName.substring(0, index);
             if (!originFileName.equals(fileName)) return false;
             try {
                 int chunk = Integer.parseInt(chunkFileName.substring(index + 1));
@@ -104,7 +146,7 @@ public class FileUtil {
     /**
      * 获取文件片片号
      */
-    private static Integer getFileChunkIndex(String chunkFileName) {
+    private static Integer getChunkFileIndex(String chunkFileName) {
         int index = chunkFileName.lastIndexOf("-");
         if (index != -1) {
             return Integer.parseInt(chunkFileName.substring(index + 1));
