@@ -475,17 +475,21 @@ export default {
     };
     // 上传文件
     let globalUploadQueue = null;
-    let globalUploadProgress = null;  // -1上传失败
+    let globalUploadProgress = null;  // 字节级进度追踪
     const resetGlobalUpload = () => {
       if(globalUploadQueue) {
         globalUploadQueue.pause();
         globalUploadQueue.clear();
       }
-      globalUploadQueue = new PQueue({concurrency: 4});
+      globalUploadQueue = new PQueue({
+        concurrency: window.isSecureContext ? 24 : 5,
+        interval: 200,
+        intervalCap: 1,
+      });
       globalUploadProgress = {};
     };
     resetGlobalUpload();
-    const chunkSize = 1024 * 2173;   // 每一片大小2173KB
+    const chunkSize = 4 * 1024 * 1024;   // 文件片大小
     const doUpload = async (fileData, config={}) => {
       try {
         if(isShowDirInput.value) return;
@@ -522,24 +526,25 @@ export default {
           });
         }
         // 分片上传
-        globalUploadProgress[fileId] = 0;
+        globalUploadProgress[fileId] = {};
         const uploadTasks = [];
         for(let chunk=1;chunk<=chunks;chunk++) {
           // 添加任务至上传队列
           const task = globalUploadQueue.add(() => {
             // 计算分片
-            const start = (chunk-1) * chunkSize;
+            const currentChunk = chunk;
+            const start = (currentChunk - 1) * chunkSize;
             const end = start + chunkSize >= fileSize ? fileSize : start + chunkSize;
             const fileChunk = file.slice(start, end);
             // 上传文件片
             const formData = new FormData();
             formData.append('file', fileChunk);
-            formData.append('chunk', chunk);
+            formData.append('chunk', currentChunk);
             formData.append('id', fileId);
             formData.append('sshKey', key);
             return new Promise((resolve, reject) => {
               // 上传已失败
-              if(globalUploadProgress[fileId] === -1) {
+              if(globalUploadProgress[fileId] === null) {
                 reject();
                 return;
               }
@@ -549,42 +554,49 @@ export default {
                 data: formData,
                 contentType: false,
                 processData: false,
+                xhr() {
+                  const xhr = new XMLHttpRequest();
+                  xhr.upload.onprogress = (e) => {
+                    // 更新传输列表（等待中）进度
+                    globalUploadProgress[fileId][currentChunk.toString()] = Math.min(e.loaded, end - start);
+                    const uploadedSize = Object.values(globalUploadProgress[fileId]).reduce((a, b) => a + b, 0);
+                    fileTransInfo.progress = Math.min(Math.floor((uploadedSize / fileSize) * 100), 99);
+                    context.emit('updateTransportLists', 0, 0, fileId, fileTransInfo);
+                  };
+                  return xhr;
+                },
                 success(resp) {
                   // 上传已失败
-                  if(globalUploadProgress[fileId] === -1) {
+                  if(globalUploadProgress[fileId] === null) {
                     reject();
                     return;
                   }
-                  // 上传中
+                  // 文件片上传成功
                   if(resp.status === 'success') {
-                    // 更新传输列表（等待中）进度
-                    const progress = ++globalUploadProgress[fileId];
-                    fileTransInfo.progress = Math.floor((progress / chunks) * 100);
-                    context.emit('updateTransportLists', 0, 0, fileId, fileTransInfo);
                     resolve();
+                    return;
                   }
-                  else {
-                    globalUploadProgress[fileId] = -1;
-                    chunk = chunks + 10;
-                    // 更新传输列表（等待中）状态
-                    fileTransInfo.status = -1;
-                    context.emit('updateTransportLists', 0, 1, fileId, null);
-                    context.emit('updateTransportLists', 3, 0, fileId, fileTransInfo);
-                    ElMessage({
-                      message: resp.info,
-                      type: resp.status,
-                      grouping: true,
-                    });
-                    reject();
-                  }
+                  // 文件片上传失败
+                  globalUploadProgress[fileId] = null;
+                  chunk = chunks + 10;
+                  // 更新传输列表（等待中）状态
+                  fileTransInfo.status = -1;
+                  context.emit('updateTransportLists', 0, 1, fileId, null);
+                  context.emit('updateTransportLists', 3, 0, fileId, fileTransInfo);
+                  ElMessage({
+                    message: resp.info,
+                    type: resp.status,
+                    grouping: true,
+                  });
+                  reject();
                 },
                 error() {
                   // 上传已失败
-                  if(globalUploadProgress[fileId] === -1) {
+                  if(globalUploadProgress[fileId] === null) {
                     reject();
                     return;
                   }
-                  globalUploadProgress[fileId] = -1;
+                  globalUploadProgress[fileId] = null;
                   chunk = chunks + 10;
                   // 更新传输列表（等待中）状态
                   fileTransInfo.status = -1;
@@ -599,11 +611,14 @@ export default {
         }
         // 合并文件片
         Promise.allSettled(uploadTasks).then(() => {
-          const progress = globalUploadProgress[fileId];
+          const fileUploadProgress = globalUploadProgress[fileId];
           delete globalUploadProgress[fileId];
           // 上传已失败
-          if(progress !== chunks) return;
+          if(fileUploadProgress === null) return;
           // 上传成功
+          // 更新传输列表（等待中）进度
+          fileTransInfo.progress = 100;
+          context.emit('updateTransportLists', 0, 0, fileId, fileTransInfo);
           const formData = new FormData();
           formData.append('fileName', fileName);
           formData.append('chunks', chunks);

@@ -1,6 +1,6 @@
 package com.kkbpro.terminal.utils;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.net.InetAddress;
 
 public class IpUtil {

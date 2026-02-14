@@ -7,7 +7,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
-import javax.annotation.PreDestroy;
+import jakarta.annotation.PreDestroy;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -101,14 +101,14 @@ public class TerminalApplication {
     }
 
     private static void startOnceMonitor() {
-        new Thread(() -> {
+        Thread.ofVirtual().start(() -> {
             try {
                 Thread.sleep(1000 * 18);
                 if (!SystemController.isEnableMonitor()) System.exit(0); // 结束进程
             } catch (InterruptedException e) {
                 LogUtil.logException(TerminalApplication.class, e);
             }
-        }).start();
+        });
     }
 
 }

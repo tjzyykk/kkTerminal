@@ -84,7 +84,7 @@ public class FileUtil {
         // 获取所有文件片
         File[] chunkFiles = folder.listFiles();
         if (chunkFiles == null) {
-            throw new MyException(Result.error(FileStateEnum.CHUNK_MERGE_ERROR.getState(), "文件片合并失败"));
+            throw new MyException(Result.error(FileStateEnum.UPLOAD_CHUNK_LOST.getState(), "文件片缺失"));
         }
         try (OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(mergedFile, true))) {
             List<File> filteredChunkFiles = Arrays.stream(chunkFiles)

@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-import javax.servlet.http.*;
+import jakarta.servlet.http.*;
 import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;
 

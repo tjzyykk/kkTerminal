@@ -9,8 +9,8 @@ export const default_env = {
   option: '',
   // 样式相关
   lang: 'en',
-  bg: '#0c0c0c',
-  fg: '#cccccc',
+  bg: '#000000',
+  fg: '#ffffff',
   fontFamily: 'Courier New',
   fontSize: 16,
   cursorStyle: 'block',

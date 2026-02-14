@@ -24,10 +24,10 @@ import net.schmizz.sshj.sftp.SFTPClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.websocket.*;
-import javax.websocket.Session;
-import javax.websocket.server.PathParam;
-import javax.websocket.server.ServerEndpoint;
+import jakarta.websocket.*;
+import jakarta.websocket.Session;
+import jakarta.websocket.server.PathParam;
+import jakarta.websocket.server.ServerEndpoint;
 import java.io.*;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -218,7 +218,7 @@ public class WebSocketServer {
         this.shell = sshSession.startShell();
         this.shellInputStream = this.shell.getInputStream();
         this.shellOutputStream = this.shell.getOutputStream();
-        this.shellOutThread = new Thread(() -> {
+        this.shellOutThread = Thread.ofVirtual().start(() -> {
             byte[] buffer = new byte[Constant.BUFFER_SIZE];
             int len;
             try {
@@ -238,9 +238,8 @@ public class WebSocketServer {
                 LogUtil.logException(this.getClass(), e);
             }
         });
-        this.shellOutThread.start();
         // 异步建立传输SSH连接
-        new Thread(() -> {
+        Thread.ofVirtual().start(() -> {
             try {
                 SSHClient ssh = SSHUtil.connectHost(envInfo);
                 SFTPClient sftp = ssh.newSFTPClient();
@@ -249,7 +248,7 @@ public class WebSocketServer {
             } catch (Exception e) {
                 LogUtil.logException(this.getClass(), e);
             };
-        }).start();
+        });
     }
 
     @OnClose
@@ -282,7 +281,7 @@ public class WebSocketServer {
         webSocketServerMap.remove(this.sshKey);
         Boolean isClosed = closeTransClient(this.sshKey);
         // 删除临时文件
-        new Thread(() -> {
+        Thread.ofVirtual().start(() -> {
             // 延时5s执行
             try {
                 Thread.sleep(5000);
@@ -310,7 +309,7 @@ public class WebSocketServer {
                 }
                 else transFileFolder.delete();
             }
-        }).start();
+        });
     }
     // 关闭传输资源
     public static Boolean closeTransClient(String sshKey) {

@@ -3,7 +3,7 @@ import useClipboard from "vue-clipboard3";
 import { v4 as uuidv4 } from "uuid";
 
 const { toClipboard } = useClipboard();
-let clipboardText = undefined;
+let clipboardText = "";
 
 // Overwrite all used functions in the BOM window
 const browser = {

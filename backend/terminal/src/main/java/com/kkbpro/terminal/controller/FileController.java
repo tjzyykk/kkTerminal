@@ -17,11 +17,10 @@ import net.schmizz.sshj.sftp.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.*;
 
 /**
@@ -457,7 +456,7 @@ public class FileController {
     }
 
     /**
-     *  tar 文件压缩包解压
+     * tar 文件压缩包解压
      */
     @Log
     @PostMapping("/untar")
@@ -532,7 +531,7 @@ public class FileController {
         File chunkFile = FileUtil.prepareFile(chunkFilePath);
         // 写入数据
         try {
-            Files.write(chunkFile.toPath(), file.getBytes());
+            file.transferTo(chunkFile.toPath());
         } catch (Exception e) {
             chunkFile.delete();
             LogUtil.logException(this.getClass(), e);
@@ -569,7 +568,7 @@ public class FileController {
 
         FileTransInfo fileTransInfo = new FileTransInfo(id, path, fileName, totalSize, 1, 0);
         WebSocketServer.putTransportingFile(sshKey, id, fileTransInfo);
-        new Thread(() -> {
+        Thread.ofVirtual().start(() -> {
             try {
                 // 合并文件片
                 FileUtil.mergeFileChunks(transFileFolderPath, id, chunks, totalSize);
@@ -587,7 +586,7 @@ public class FileController {
                 FileUtil.forceDeleteFolder(transFileFolder);
                 if (isClosed) FileUtil.forceDeleteFolder(transFolder);
             }
-        }).start();
+        });
 
         return Result.success(FileStateEnum.FILE_UPLOADING.getState(), "文件后台上传中");
     }

@@ -90,7 +90,7 @@ public class SystemController {
         if (monitor == null) {
             synchronized (this) {
                 if (monitor == null) {
-                    monitor = new Thread(() -> {
+                    monitor = Thread.ofVirtual().start(() -> {
                         try {
                             while (!windowActiveMap.isEmpty()) {
                                 // 超过33s则移除（判定为窗口已关闭）
@@ -102,7 +102,6 @@ public class SystemController {
                             LogUtil.logException(this.getClass(), e);
                         }
                     });
-                    monitor.start();
                 }
             }
         }
